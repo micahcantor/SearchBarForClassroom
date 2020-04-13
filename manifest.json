@@ -1,0 +1,23 @@
+ {
+    "name": "Getting Started Example",
+    "version": "1.0",
+    "description": "Build an Extension!",
+    "manifest_version": 2,
+    "permissions": [
+        "activeTab",
+        "contextMenus",
+        "tabs"
+    ],
+    "content_scripts": [
+        {
+          "run_at": "document_end",
+          "matches": ["https://classroom.google.com/u/*/c/*"],
+          "js": ["start.js"]
+        }
+      ],
+    "web_accessible_resources": [
+      "content.js",
+      "search.html",
+      "searchStyle.css"
+    ]
+  }
