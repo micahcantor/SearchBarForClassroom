@@ -25,9 +25,5 @@
     "client_id": "809411372636-isaj4trbcg56tnmdevf3qhv1vk57kttb.apps.googleusercontent.com",
     "scopes":["https://www.googleapis.com/auth/classroom.student-submissions.me.readonly"]
   },
-  "web_accessible_resources": [
-    "content.js",
-    "search.html",
-    "searchStyle.css"
-  ]
+  "web_accessible_resources": ["searchStyle.css", "credentials.json"]
 }

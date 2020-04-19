@@ -1,29 +1,32 @@
 addFormStyle();
-addFormScript();
-addFormHTML();
+listenAndLoad();
 
-function addFormHTML () {
-    var form = document.createElement('form');
-    var input = document.createElement('input');
-    var btn = document.createElement('button');
-    var searchIcon = document.createElement('i');
+function listenAndLoad() {
+  var form = addFormHTML();
+  var intervalID = setInterval(function() {
+      targetDiv = document.getElementById("ow43");
+      if (targetDiv != null) {
+          console.log(targetDiv);
+          targetDiv.insertBefore(form, targetDiv.children[1]);
+          clearInterval(intervalID);
+      }
+  }, 500);
 
-    form.setAttribute("class", "example");
-    form.setAttribute("action", "/contact");
-    form.setAttribute("method", "POST");
-    btn.setAttribute("type", "submit");
-    searchIcon.setAttribute("class", "fa fa-search");
-    Object.assign(input, {
-        type : "text",
-        placeholder: "Search the stream",
-        name : "search"
-    });
+  var input = form.children[0];
+  var button = form.children[1];
 
-    btn.appendChild(searchIcon);
-    form.appendChild(input);
-    form.appendChild(btn);
-    document.body.appendChild(form);
+  button.addEventListener("click", function(event) {
+    var data = {
+        text: input.value
+    };
+    chrome.runtime.sendMessage(data, function(response) {
+        console.log('response', response)
+    })
+    event.preventDefault();
+  });
+  
 }
+
 function addFormStyle() {
     var styleLink = document.createElement("link");
     styleLink.setAttribute("rel", "stylesheet");
@@ -36,15 +39,29 @@ function addFormStyle() {
     document.head.appendChild(styleLink);
     document.head.appendChild(imgStyle);
 }
-function addFormScript () {
-    var content = document.createElement('script');
-    content.src = chrome.runtime.getURL('content.js');
-    content.onload = function() {
-        this.remove();
-    };
-    document.body.appendChild(content);
+
+function addFormHTML () {
+    var form = document.createElement('form');
+    var input = document.createElement('input');
+    var btn = document.createElement('button');
+    var searchIcon = document.createElement('i');
+
+    form.setAttribute("class", "example");
+    btn.setAttribute("type", "submit");
+    searchIcon.setAttribute("class", "fa fa-search");
+    Object.assign(input, {
+        type : "text",
+        placeholder: "Search the stream",
+        name : "search"
+    });
+
+    btn.appendChild(searchIcon);
+    form.appendChild(input);
+    form.appendChild(btn);
+    return (form);
 }
 
 
+///NOTE: put ttps://icons8.com in the about section of the extension
 
 
