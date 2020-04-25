@@ -6,8 +6,8 @@ const DISCOVERY_DOCS = ["https://classroom.googleapis.com/$discovery/rest?versio
 
 function onGAPILoad() {
   gapi.client.init({
-      // Don't pass client nor scope as these will init auth2, which we don't want
     apiKey: API_KEY,
+    client_ID: CLIENT_ID,
     discoveryDocs: DISCOVERY_DOCS,
   });
 }
@@ -17,22 +17,10 @@ chrome.extension.onMessage.addListener(
     // Get the token
     chrome.identity.getAuthToken({interactive: true}, function(token) {
       // Set GAPI auth token
-      gapi.auth.setToken({
-        'access_token': token,
-      });
+      gapi.auth.setToken({'access_token': token});
 
-      //API Classroom stuff here
-      var response = gapi.client.classroom.courses.list();
-      var courses = response.courses;
-      console.log("Courses:");
-      for (course in courses) {
-        console.log('%s (%s)', courses[course].name, courses[course].id);
-      }
-      /////////
-      
       sendResponse({
-        text: request.text,
-        list: courses,
+        access_token: token,
         success: true
       });
     })

@@ -16,11 +16,24 @@ function listenAndLoad() {
   var button = form.children[1];
 
   button.addEventListener("click", function(event) {
+
     var data = {
-        text: input.value
+        text: input.text
     };
     chrome.runtime.sendMessage(data, function(response) {
-        console.log('response', response)
+        console.log('response', response.access_token)
+
+        const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac"
+        function reqListener () {
+            console.log(this.responseText);
+        }
+
+        var oReq = new XMLHttpRequest();
+        oReq.addEventListener("load", reqListener);
+        oReq.open("GET", "https://classroom.googleapis.com/v1/courses?key=" + API_KEY);
+        oReq.setRequestHeader("Authorization", "Bearer " + response.access_token);
+        oReq.setRequestHeader("Accept", "application/json");
+        oReq.send();
     })
     event.preventDefault();
   });
