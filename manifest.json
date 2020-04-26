@@ -23,7 +23,10 @@
   },
   "oauth2": {
     "client_id": "809411372636-isaj4trbcg56tnmdevf3qhv1vk57kttb.apps.googleusercontent.com",
-    "scopes":["https://www.googleapis.com/auth/classroom.courses.readonly"]
+    "scopes":[
+      "https://www.googleapis.com/auth/classroom.courses.readonly",
+      "https://www.googleapis.com/auth/classroom.coursework.me.readonly"
+    ]
   },
   "web_accessible_resources": ["searchStyle.css", "credentials.json"]
 }

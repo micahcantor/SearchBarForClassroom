@@ -12,34 +12,86 @@ function listenAndLoad() {
       }
   }, 500);
 
-  var input = form.children[0];
   var button = form.children[1];
 
-  button.addEventListener("click", function(event) {
-
-    var data = {
-        text: input.text
-    };
-    chrome.runtime.sendMessage(data, function(response) {
-        console.log('response', response.access_token)
-
-        const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac"
-        function reqListener () {
-            console.log(this.responseText);
-        }
-
-        var oReq = new XMLHttpRequest();
-        oReq.addEventListener("load", reqListener);
-        oReq.open("GET", "https://classroom.googleapis.com/v1/courses?key=" + API_KEY);
-        oReq.setRequestHeader("Authorization", "Bearer " + response.access_token);
-        oReq.setRequestHeader("Accept", "application/json");
-        oReq.send();
-    })
+  button.addEventListener("click", function(event) {           // when search button is pressed
+    getCurrentCourseID().then(function(resultID) {             // gets course id for the current course
+        getCourseWork(resultID).then(function(resultWork) {    // gets an array of the course work in that course
+            var input = form.children[0].value;                // get current value of the input form
+            searchCourseWork(resultWork, input)
+        });
+    });
     event.preventDefault();
   });
   
 }
 
+function searchCourseWork(courseWork, input) {
+    console.log(courseWork[0])
+    var inTitle = courseWork[0].filter(el => el.includes(input));
+    var inDescription = courseWork[1].filter(el => el.includes(input));
+    var matching = inTitle.concat(inDescription);
+    console.log(matching);
+}
+
+// TODO: make function to get announcement bodies, add it to the search function
+// TODO: have extension load not only on refresh
+// TODO: display announcements in the stream or in a popup. 
+
+function getCourseWork(COURSE_ID) {
+    const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
+    var data = {}
+    return new Promise(function(resolve, reject) {
+        chrome.runtime.sendMessage(data, function(response) {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function() {
+                var courseWork = JSON.parse(this.responseText).courseWork;
+                var titles = [];
+                var descriptions = [];
+                var materials = [];
+                var IDs = [];
+                for (const assignment of courseWork) { 
+                    titles.push(assignment.title);
+                    IDs.push(assignment.id);
+                    if (assignment.hasOwnProperty("description")) {     
+                        descriptions.push(assignment.description);
+                    }
+                    else {descriptions.push("")}                   // push empty string to preserve indeces
+                }
+                var courseWorkValues = [titles, descriptions, IDs];
+                resolve(courseWorkValues);
+            }
+            xhr.open("GET", "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/courseWork?key=" + API_KEY);
+            xhr.setRequestHeader("Authorization", "Bearer " + response.access_token);
+            xhr.setRequestHeader("Accept", "application/json");
+            xhr.send();
+        })
+    })
+}
+
+function getCurrentCourseID() {
+    var data = {};
+    const courseName = document.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0].innerHTML;   // Finds element with the name of the course
+    return new Promise(function(resolve, reject) {                                          
+        chrome.runtime.sendMessage(data, function(response) {
+            const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
+    
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function() {
+                var courseList = JSON.parse(this.responseText).courses;                     // parse request string into JSON
+                for (const course of courseList) {
+                    if (course.name == courseName) {
+                        resolve(course.id)                                                  // find course with the name on the current page
+                    }
+                }
+            };
+            xhr.open("GET", "https://classroom.googleapis.com/v1/courses?key=" + API_KEY + "&courseStates=ACTIVE");
+            xhr.setRequestHeader("Authorization", "Bearer " + response.access_token);
+            xhr.setRequestHeader("Accept", "application/json");
+            xhr.send();
+        });
+    })
+}
 function addFormStyle() {
     var styleLink = document.createElement("link");
     styleLink.setAttribute("rel", "stylesheet");
