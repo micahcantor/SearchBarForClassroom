@@ -1,97 +1,200 @@
-addFormStyle();
-listenAndLoad();
 
-function listenAndLoad() {
+// TODO: Improve search with quotations and types of posts
+// TODO: have extension load not only on refresh
+// DONE: refactor get functions with fetch api 
+// TODO: add timer reset auth token silently
+// TODO: display announcements in the stream or in a popup. 
+    // DONE: fill teacher name and date into the assignment
+    // fix displaying assignments with comments
+    // implement displaying announcements
+        // fix issue of doubling up style ids
+    // general style improvements
+        // add loading icon 
+        // turn search icons into reset button
+        // visually separate the search results
+
+addFormStyle();
+var form = insertFormHTML();
+listenForSearch(form);
+
+function insertFormHTML() {
   var form = addFormHTML();
   var intervalID = setInterval(function() {
       targetDiv = document.getElementById("ow43");
       if (targetDiv != null) {
-          console.log(targetDiv);
           targetDiv.insertBefore(form, targetDiv.children[1]);
           clearInterval(intervalID);
       }
   }, 500);
+  return form
+}
 
+function listenForSearch(form) {
   var button = form.children[1];
-
-  button.addEventListener("click", function(event) {           // when search button is pressed
-    getCurrentCourseID().then(function(resultID) {             // gets course id for the current course
-        getCourseWork(resultID).then(function(resultWork) {    // gets an array of the course work in that course
-            var input = form.children[0].value;                // get current value of the input form
-            searchCourseWork(resultWork, input)
-        });
-    });
+  button.addEventListener("click", async function(event) {            // when search button is pressed
     event.preventDefault();
+    const courseID = await getCurrentCourseID();
+    const assignments = await getCourseAssignments(courseID);
+    const combinedWork = await getCourseAnnouncements(assignments, courseID);
+    const input = form.children[0].value
+    const searchResults = await searchCourseWork(combinedWork, input);
+    displayResults(searchResults);
   });
-  
+}
+
+async function displayResults(matches) {
+
+/*  Hide existing div with all the assignments
+    Reconstruct div structure for each matched assignment
+    Insert created structure beneath the form tag
+ */
+    var resultContainer = document.createElement("div");
+    await displayAssignments(matches, resultContainer);
+    await displayAnnouncements(matches, resultContainer);
+
+    var assignmentStyle = document.createElement("link");
+    assignmentStyle.setAttribute("rel", "stylesheet");
+    assignmentStyle.setAttribute("href", chrome.runtime.getURL('assignmentStyle.css'));
+    //document.head.appendChild(assignmentStyle);
+
+    var announcementStyle = document.createElement("link");
+    announcementStyle.setAttribute("rel", "stylesheet");
+    announcementStyle.setAttribute("href", chrome.runtime.getURL('announcementStyle.css'));
+    document.head.appendChild(announcementStyle);
+    
+    targetDiv = document.getElementById("ow43");
+    targetDiv.insertBefore(resultContainer, targetDiv.children[2]);
+
+}
+
+async function displayAnnouncements(matches, resourceContainer) {
+    let response = await fetch(chrome.runtime.getURL('announcement.html'));
+    let text = await response.text()
+
+    var parser = new DOMParser();
+    var matchedAnnouncements = [];
+    for (const match of matches) {
+        if (match.item.type == "announcement") {
+            var doc = parser.parseFromString(text, 'text/html');
+            const teacher = getTeacherName();
+            doc.getElementById("DIV_1").setAttribute("data-stream-item-id", match.item.id);
+            console.log(match.item.description.split(0, 38) + "...")
+            doc.getElementById("SPAN_8").textContent = "Announcement" + match.item.description.split(0, 38) + "...";
+            doc.getElementById("SPAN_10").textContent = teacher;
+            doc.getElementById("SPAN_12").textContent = "Created " + match.item.created;
+            doc.getElementById("SPAN_13").textContent = match.item.created;
+            doc.getElementById("DIV_31").textContent = match.item.description;
+            if (match.item.edited != null) 
+                doc.getElementById("SPAN_11").textContent = "(Edited " + match.item.edited + ")"
+            else
+                doc.getElementById("SPAN_11").textContent = ""
+
+            matchedAnnouncements.push(doc.getElementById("DIV_1"));
+        }
+    }
+    for (const div of matchedAnnouncements) {
+        console.log(div)
+        resourceContainer.appendChild(div);
+    }
+}
+
+async function displayAssignments(matches, resourceContainer) {
+    let response = await fetch(chrome.runtime.getURL('assignment.html'));
+    let text = await response.text()
+
+    var parser = new DOMParser();
+    var matchedAssignments = [];
+    for (const match of matches) {
+        if (match.item.type == "assignment") {
+            var doc = parser.parseFromString(text, 'text/html');
+            const teacher = getTeacherName();
+            doc.getElementById("DIV_1").setAttribute("data-stream-item-id", match.item.id);
+            doc.getElementById("SPAN_12").textContent = "Assignment: " + match.item.title;
+            doc.getElementById("SPAN_14").textContent = teacher + "posted a new assignment: " + match.item.title;
+            match.item.updated == null ? doc.getElementById("SPAN_17").textContent = match.item.created : doc.getElementById("SPAN_17").textContent = match.item.updated;
+            matchedAssignments.push(doc.getElementById("DIV_1"));
+        }
+    }
+    for (const div of matchedAssignments) {
+        resourceContainer.appendChild(div);
+    }
 }
 
 function searchCourseWork(courseWork, input) {
-    console.log(courseWork[0])
-    var inTitle = courseWork[0].filter(el => el.includes(input));
-    var inDescription = courseWork[1].filter(el => el.includes(input));
-    var matching = inTitle.concat(inDescription);
-    console.log(matching);
+    const fuseOptions = {
+        keys: ['title', 'description'],
+        includeScore: true,
+        tokenize: false,
+        findAllMatches: true,
+        threshold: 0.6,
+    };
+    const fuse = new Fuse(courseWork, fuseOptions);
+    const result = fuse.search(input);
+    return result;
 }
 
-// TODO: make function to get announcement bodies, add it to the search function
-// TODO: have extension load not only on refresh
-// TODO: display announcements in the stream or in a popup. 
-
-function getCourseWork(COURSE_ID) {
-    const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
-    var data = {}
+function getCourseAnnouncements(courseWorkValues, COURSE_ID) {
     return new Promise(function(resolve, reject) {
-        chrome.runtime.sendMessage(data, function(response) {
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-                var courseWork = JSON.parse(this.responseText).courseWork;
-                var titles = [];
-                var descriptions = [];
-                var materials = [];
-                var IDs = [];
-                for (const assignment of courseWork) { 
-                    titles.push(assignment.title);
-                    IDs.push(assignment.id);
-                    if (assignment.hasOwnProperty("description")) {     
-                        descriptions.push(assignment.description);
-                    }
-                    else {descriptions.push("")}                   // push empty string to preserve indeces
-                }
-                var courseWorkValues = [titles, descriptions, IDs];
-                resolve(courseWorkValues);
-            }
-            xhr.open("GET", "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/courseWork?key=" + API_KEY);
-            xhr.setRequestHeader("Authorization", "Bearer " + response.access_token);
-            xhr.setRequestHeader("Accept", "application/json");
-            xhr.send();
-        })
+        const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
+        const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/announcements?key=" + API_KEY
+        const reqOptions = {
+            url: URL,
+            type: "announcements",
+            values: courseWorkValues
+        }
+        getClassroomData(reqOptions)
+            .then(response => resolve(response))
+    })
+}
+
+function getCourseAssignments(COURSE_ID) {
+    return new Promise(function(resolve, reject) {
+        const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
+        const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/courseWork?key=" + API_KEY
+        const reqOptions = {
+            url: URL,
+            type: "assignments"
+        }
+        getClassroomData(reqOptions)
+            .then(response => resolve(response))
     })
 }
 
 function getCurrentCourseID() {
-    var data = {};
-    const courseName = document.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0].innerHTML;   // Finds element with the name of the course
-    return new Promise(function(resolve, reject) {                                          
-        chrome.runtime.sendMessage(data, function(response) {
-            const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
-    
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-                var courseList = JSON.parse(this.responseText).courses;                     // parse request string into JSON
-                for (const course of courseList) {
-                    if (course.name == courseName) {
-                        resolve(course.id)                                                  // find course with the name on the current page
-                    }
-                }
-            };
-            xhr.open("GET", "https://classroom.googleapis.com/v1/courses?key=" + API_KEY + "&courseStates=ACTIVE");
-            xhr.setRequestHeader("Authorization", "Bearer " + response.access_token);
-            xhr.setRequestHeader("Accept", "application/json");
-            xhr.send();
-        });
+    return new Promise(function(resolve, reject) {
+        const courseName = document.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0].textContent;   // Finds element with the name of the course
+        const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
+        const URL = "https://classroom.googleapis.com/v1/courses?key=" + API_KEY + "&courseStates=ACTIVE"
+        const reqOptions = {
+            url: URL,
+            type: "courseID",
+            courseName : courseName
+        }
+        getClassroomData(reqOptions)
+            .then(response => resolve(response))  
     })
 }
+
+function getClassroomData(data) {
+    return new Promise(function(resolve, reject) {
+        chrome.runtime.sendMessage(data, function(response) {
+            resolve(response)
+        }) 
+    })
+}
+
+function getTeacherName() {
+    const firstAssignmentText = document.getElementsByClassName("YVvGBb asQXV")[0].textContent.split(" ")
+    const teacherName = []
+    if (firstAssignmentText != null) {
+        for (const word of firstAssignmentText) {
+            if (word == "posted") break;
+            teacherName.push(word)
+        }
+        return teacherName.join(" ") + " "
+    }
+}
+
 function addFormStyle() {
     var styleLink = document.createElement("link");
     styleLink.setAttribute("rel", "stylesheet");

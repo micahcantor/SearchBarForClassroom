@@ -1,32 +1,36 @@
 {
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwB2c3YIUr017CxBV+YZHQ1Ve4/n7RT835Cx+WlD9Core5Ty5KFe7KojpaoYFOgs+xGEIiwbxwj5hNVKkkNnoAuMgYpso3dhl3qAkcx17oOKz+LEEG1vj9LefKp/sPG1vgt7VmNLJ3AWJVEXrbpzw2z5fNPg6p68+NH3Ga+PkH0ktWueR3+S4Lli5MP8I8xsTJMKjtLXMnzEhro6lNLtnS85OfCd/wP1MdrzCYXV9hI7bO8Z8uSJs3cvEFv1CwN8UDMT8eKMdGsJUOqqqdnPy43Gx/rhEKuNHAyldW749cl7Ar+OkSvS47XJRtuWC9aXVwxk/+DcCy2FDX1fgRnrbnQIDAQAB",
   "name": "Google Classroom Searchbar",
   "version": "1.0",
   "description": "A search bar for the google classroom assignments stream",
   "manifest_version": 2,
   "permissions": [
-      "activeTab",
-      "contextMenus",
-      "tabs",
-      "identity"
-  ],
-  "content_security_policy": "script-src 'self' https://apis.google.com/; object-src 'self'",
-  "content_scripts": [
-      {
-        "run_at": "document_end",
-        "matches": ["https://classroom.google.com/u/*/c/*"],
-        "js": ["start.js"]
-      }
+    "background",
+    "identity",
+    "https://classroom.googleapis.com/*"
   ],
   "background": {
-    "page": "background.html",
-    "persistent": false
+      "scripts": ["background.js"]
   },
+  "content_scripts": [{
+        "run_at": "document_end",
+        "matches": ["https://classroom.google.com/u/*/c/*"],
+        "js": ["fuse.js", "start.js"]
+      }
+  ],
   "oauth2": {
     "client_id": "809411372636-isaj4trbcg56tnmdevf3qhv1vk57kttb.apps.googleusercontent.com",
     "scopes":[
       "https://www.googleapis.com/auth/classroom.courses.readonly",
-      "https://www.googleapis.com/auth/classroom.coursework.me.readonly"
+      "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+      "https://www.googleapis.com/auth/classroom.announcements.readonly"
     ]
   },
-  "web_accessible_resources": ["searchStyle.css", "credentials.json"]
+  "web_accessible_resources": [
+    "assignment.html",
+    "assignmentStyle.css",
+    "announcement.html",
+    "announcementStyle.css",
+    "searchStyle.css",
+    "credentials.json"]
 }

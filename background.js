@@ -1,29 +1,84 @@
-// this is all boiler plate code for authorization
+chrome.extension.onMessage.addListener(
+  function(request, sender, sendResponse){
+    chrome.identity.getAuthToken({interactive: true}, function (token) {
+      if (chrome.runtime.lastError) {
+        console.log(chrome.runtime.lastError.message)
+        return
+      }
 
-const API_KEY = 'AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac'
-const CLIENT_ID = '809411372636-isaj4trbcg56tnmdevf3qhv1vk57kttb.apps.googleusercontent.com'
-const DISCOVERY_DOCS = ["https://classroom.googleapis.com/$discovery/rest?version=v1"]
+      const myHeaders = new Headers({
+        "Authorization": "Bearer " + token,
+        "Accept": "application/json"
+      })
 
-function onGAPILoad() {
-  gapi.client.init({
-    apiKey: API_KEY,
-    discoveryDocs: DISCOVERY_DOCS,
-  });
+      fetch(request.url, {headers: myHeaders})
+        .then(response => response.json())
+        .then(function(data) {
+          if (request.type == "courseID") {
+            sendResponse(getCourseID(data, request));
+          }
+          else if (request.type == "assignments") {
+            sendResponse(getAssignments(data));
+          }
+          else if (request.type == "announcements") {
+            sendResponse(getAnnouncements(data, request));
+          }
+        })
+
+    })
+    return true;
+})
+
+function getCourseID(data, request) {
+  var courseList = data.courses
+  for (const course of courseList) {
+    if (course.name == request.courseName) {
+        return course.id                                          // find course with the name on the current page
+    }
+  }
 }
 
-chrome.extension.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    chrome.identity.getAuthToken({interactive: true}, function(token) {
-      gapi.auth.setToken({'access_token': token});
+function getAssignments(data) {
+  var courseWork = data.courseWork;
+  var courseWorkValues = [];
+  if (courseWork.length > 0) {
+    var descriptions = [];
+    console.log(data)
+    for (let i = 0; i < courseWork.length; i++) { 
+        if (courseWork[i].hasOwnProperty("description")) {     
+            descriptions.push(courseWork[i].description);
+        }
+        else {descriptions.push("")}                         // push empty string to preserve indeces
 
-      sendResponse({
-        access_token: token,
-        success: true
-      });
-    })
-    // Wait for response
-    return true;
+        var created = new Date(courseWork[i].creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'});
+        var updated = null;
+        if (courseWork[i].hasOwnProperty("updateTime")) updated = new Date(courseWork[i].updateTime).toLocaleDateString('default', {month: 'short', day: 'numeric'})
+        
+        courseWorkValues.push({
+            title: courseWork[i].title,
+            description : descriptions[i],
+            type: "assignment",
+            created: created,
+            updated: updated,
+            id : courseWork[i].id
+        })
+    }
   }
-); 
-    
+  return courseWorkValues
+}
 
+function getAnnouncements(data, request) {
+  var announcements = data.announcements;
+  var courseWorkValues = request.values;
+  if (announcements != null) {
+    for (const announce of announcements) {
+      courseWorkValues.push({
+            description : announce.text,
+            type: "announcement",
+            created: new Date(announce.creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'}),
+            id : announce.id
+        })
+    }
+  }
+  return courseWorkValues;
+}
