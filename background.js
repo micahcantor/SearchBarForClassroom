@@ -1,3 +1,21 @@
+
+function oauth(email) {
+  var url = "https://accounts.google.com/o/oauth2/auth" +
+    "?client_id" + "809411372636-42mpeh1d7ntk8vor0kuhtsg66ug1olcd.apps.googleusercontent.com" +
+    "&response_type=token" +
+    "&redirect_uri=" + "https://hkipfjomcdcmllhnkpmbndggbgdicmic.chromiumapp.org/provider_cb" +
+    "&login_hint=" + email +
+    "&scope=" + [
+      "https://www.googleapis.com/auth/classroom.courses.readonly",
+      "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+      "https://www.googleapis.com/auth/classroom.announcements.readonly"
+    ]
+  chrome.identity.launchWebAuthFlow({'url': url, 'interactive': true}, 
+    function (redirectedTo) {
+      // check errors and get token from redirect url
+    });
+}
+
 chrome.extension.onMessage.addListener(
   function(request, sender, sendResponse){
     chrome.identity.getAuthToken({interactive: true}, function (token) {
@@ -24,10 +42,10 @@ chrome.extension.onMessage.addListener(
             sendResponse(getAnnouncements(data, request));
           }
         })
-
     })
     return true;
 })
+
 
 function getCourseID(data, request) {
   var courseList = data.courses
@@ -72,10 +90,15 @@ function getAnnouncements(data, request) {
   var courseWorkValues = request.values;
   if (announcements != null) {
     for (const announce of announcements) {
+      var updated = null;
+      if (announce.hasOwnProperty("updateTime")) {
+        updated = new Date(announce.updateTime).toLocaleDateString('default', {month: 'short', day: 'numeric'})
+      }
       courseWorkValues.push({
             description : announce.text,
             type: "announcement",
             created: new Date(announce.creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'}),
+            updated: updated,
             id : announce.id
         })
     }

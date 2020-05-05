@@ -6,6 +6,7 @@
   "manifest_version": 2,
   "permissions": [
     "background",
+    "alarms",
     "identity",
     "https://classroom.googleapis.com/*"
   ],
@@ -27,10 +28,12 @@
     ]
   },
   "web_accessible_resources": [
+    "searchbar.html",
     "assignment.html",
     "assignmentStyle.css",
     "announcement.html",
     "announcementStyle.css",
+    "Rolling-1s-24px.gif",
     "searchStyle.css",
     "credentials.json"]
 }

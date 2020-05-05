@@ -440,7 +440,7 @@
     border: 0px none rgb(95, 99, 104);
     font: 12px / 16px Roboto, Arial, sans-serif;
     outline: rgb(95, 99, 104) none 0px;
-    overflow: hidden;
+    /* overflow: hidden; */
 }/*#SPAN_11*/
 
 #SPAN_11:after {
@@ -489,7 +489,6 @@
     border: 0px none rgb(95, 99, 104);
     font: 6px / 6px Roboto, Arial, sans-serif;
     outline: rgb(95, 99, 104) none 0px;
-    overflow: hidden;
 }/*#SPAN_12*/
 
 #SPAN_12:after {
