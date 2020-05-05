@@ -16,7 +16,7 @@
 
 (async function() {
     addFormStyle();
-    getUserEmail();
+    //getUserEmail();
     let form = await insertFormHTML();
     listenForSearch(form);
 })()
@@ -56,12 +56,12 @@ async function displayResults(matches) {
     var assignmentStyle = document.createElement("link");
     assignmentStyle.setAttribute("id", "assignment_style")
     assignmentStyle.setAttribute("rel", "stylesheet");
-    assignmentStyle.setAttribute("href", chrome.runtime.getURL('assignmentStyle.css'));
+    assignmentStyle.setAttribute("href", chrome.runtime.getURL('resources/assignmentStyle.css'));
     document.head.appendChild(assignmentStyle);
 
     var announcementStyle = document.createElement("link");
     announcementStyle.setAttribute("rel", "stylesheet");
-    announcementStyle.setAttribute("href", chrome.runtime.getURL('announcementStyle.css'));
+    announcementStyle.setAttribute("href", chrome.runtime.getURL('resources/announcementStyle.css'));
     document.head.appendChild(announcementStyle);
     
     targetDiv = document.getElementById("ow43");
@@ -69,7 +69,7 @@ async function displayResults(matches) {
 }
 
 async function displayAnnouncements(matches, resourceContainer) {
-    let response = await fetch(chrome.runtime.getURL('announcement.html'));
+    let response = await fetch(chrome.runtime.getURL('resources/announcement.html'));
     let text = await response.text()
 
     var parser = new DOMParser();
@@ -96,7 +96,7 @@ async function displayAnnouncements(matches, resourceContainer) {
 }
 
 async function displayAssignments(matches, resourceContainer) {
-    let response = await fetch(chrome.runtime.getURL('assignment.html'));
+    let response = await fetch(chrome.runtime.getURL('resources/assignment.html'));
     let text = await response.text();
 
     var parser = new DOMParser();
@@ -218,7 +218,7 @@ function editDOMIDs(top_div) {
 function addFormStyle() {
     var styleLink = document.createElement("link");
     styleLink.setAttribute("rel", "stylesheet");
-    styleLink.setAttribute("href", chrome.runtime.getURL('searchStyle.css'));
+    styleLink.setAttribute("href", chrome.runtime.getURL('resources/searchStyle.css'));
 
     var fontawesome = document.createElement("script");
     //fontawesome.setAttribute("src", "https://cdnjs.chttps://kit.fontawesome.com/715d9f8095.jsloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
@@ -241,7 +241,7 @@ async function insertFormHTML() {
 }
 
 async function addFormHTML () {
-    let response = await fetch(chrome.extension.getURL("searchbar.html"))
+    let response = await fetch(chrome.extension.getURL("resources/searchbar.html"))
     let text = await response.text()
     parser = new DOMParser();
     return parser.parseFromString(text, "text/html").getElementById("searchForm_1");

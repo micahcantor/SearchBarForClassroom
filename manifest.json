@@ -28,12 +28,6 @@
     ]
   },
   "web_accessible_resources": [
-    "searchbar.html",
-    "assignment.html",
-    "assignmentStyle.css",
-    "announcement.html",
-    "announcementStyle.css",
-    "Rolling-1s-24px.gif",
-    "searchStyle.css",
-    "credentials.json"]
+    "resources/*"
+  ]
 }
