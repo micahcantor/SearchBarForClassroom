@@ -22,6 +22,9 @@
   "oauth2": {
     "client_id": "809411372636-isaj4trbcg56tnmdevf3qhv1vk57kttb.apps.googleusercontent.com",
     "scopes":[
+      "openid",
+      "email",
+      "profile",
       "https://www.googleapis.com/auth/classroom.courses.readonly",
       "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
       "https://www.googleapis.com/auth/classroom.announcements.readonly"

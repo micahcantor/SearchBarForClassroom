@@ -16,7 +16,7 @@
 
 (async function() {
     addFormStyle();
-    //getUserEmail();
+    getUserEmail();
     let form = await insertFormHTML();
     listenForSearch(form);
 })()
@@ -197,7 +197,7 @@ function getUserEmail() {
     const userElement = document.getElementsByClassName("gb_D gb_Ra gb_i")[0]
     const userInfo = userElement.attributes.getNamedItem("aria-label").value;
     const emailParenthesis = userInfo.split(" ")[5]
-    const email = emailParenthesis.slice(2, email.length - 1);
+    const email = emailParenthesis.slice(2, emailParenthesis.length - 1);
     chrome.runtime.sendMessage({message: "userEmail", email: email}, function(response) {
         console.log(response)
     })
