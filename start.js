@@ -2,7 +2,7 @@
 // TODO: Improve search with quotations and types of posts
 // TODO: have extension load not only on refresh
 // DONE: refactor get functions with fetch api 
-// TODO: add timer reset auth token silently
+// DONE: reset auth token silently
 // TODO: display announcements in the stream or in a popup. 
     // DONE: fill teacher name and date into the assignment
     // DONE: fill basic info into announcements
@@ -31,7 +31,7 @@ function listenForSearch(form) {
         document.getElementById("searchResultContainer").innerHTML = "";
     } else {
         button.children[0].textContent = "Loading";
-        const courseID = await getCurrentCourseID();
+        const courseID = await getCourseID();
         const assignments = await getCourseAssignments(courseID);
         const combinedWork = await getCourseAnnouncements(assignments, courseID);
         const input = form.children[0].value
@@ -134,7 +134,8 @@ function searchCourseWork(courseWork, input) {
 function getCourseAnnouncements(courseWorkValues, COURSE_ID) {
     return new Promise(function(resolve, reject) {
         const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
-        const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/announcements?key=" + API_KEY
+        const fields = "&fields=announcements(id,text,creationTime,updateTime)"
+        const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/announcements?key=" + API_KEY + fields
         const reqOptions = {
             url: URL,
             type: "announcements",
@@ -148,7 +149,8 @@ function getCourseAnnouncements(courseWorkValues, COURSE_ID) {
 function getCourseAssignments(COURSE_ID) {
     return new Promise(function(resolve, reject) {
         const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
-        const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/courseWork?key=" + API_KEY
+        const fields = "&fields=courseWork(id,title,description,creationTime,updateTime)"
+        const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/courseWork?key=" + API_KEY + fields
         const reqOptions = {
             url: URL,
             type: "assignments"
@@ -158,11 +160,12 @@ function getCourseAssignments(COURSE_ID) {
     })
 }
 
-function getCurrentCourseID() {
+function getCourseID() {
     return new Promise(function(resolve, reject) {
         const courseName = document.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0].textContent;   // Finds element with the name of the course
         const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
-        const URL = "https://classroom.googleapis.com/v1/courses?key=" + API_KEY + "&courseStates=ACTIVE"
+        const fields = "&fields=courses(id,name)"
+        const URL = "https://classroom.googleapis.com/v1/courses?key=" + API_KEY + "&courseStates=ACTIVE" + fields
         const reqOptions = {
             url: URL,
             type: "courseID",

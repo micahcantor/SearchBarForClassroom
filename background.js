@@ -149,6 +149,7 @@ async function refreshAccess(refresh_token) {
 }
 
 function getCourseID(data, request) {
+  console.log(data)
   var courseList = data.courses
   for (const course of courseList) {
     if (course.name == request.courseName) {
@@ -186,6 +187,7 @@ function getAssignments(data) {
 }
 
 function getAnnouncements(data, request) {
+  console.log(data)
   var announcements = data.announcements;
   var courseWorkValues = request.values;
   if (announcements != null) {
