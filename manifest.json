@@ -17,7 +17,7 @@
   "content_scripts": [{
         "run_at": "document_end",
         "matches": ["https://classroom.google.com/u/*"],
-        "js": ["fuse.js", "start.js"]
+        "js": ["fuse.js", "url-pattern.js", "start.js"]
       }
   ],
   "oauth2": {

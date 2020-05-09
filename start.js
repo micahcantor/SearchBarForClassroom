@@ -6,21 +6,32 @@
 // TODO: display announcements in the stream or in a popup. 
     // DONE: fill teacher name and date into the assignment
     // DONE: fill basic info into announcements
-    // fix announcement text overflow
     // DONE: fix inserting assignments into the correct div
-    // fix bug of some assignments not reacting to click
     // DONE: fix issue of doubling up style ids in announcements  
+    // DONE: fix content script running on class list overview page
+    // fix bug of some assignments not reacting to click
+    // fix announcement text overflow
     // general style improvements
         // DONE: add loading icon 
         // DONE: add reset icon
         // ?DONE: visually separate the search results
 
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
-    addFormStyle();
-    getUserEmail();
-    insertFormHTML().then(function(form) {
-        listenForSearch(form);
-    })
+    if (onCorrectPage()) {
+        addFormStyle();
+        getUserEmail();
+        insertFormHTML().then(function(form) {
+            listenForSearch(form);
+        })
+    } 
+    else {
+        var formList = document.getElementsByClassName("search");
+        for (const form of formList) {
+            form.remove();
+        }
+        const searchStyle = document.getElementById("searchStyle");
+        if (searchStyle != null) searchStyle.remove();
+    }
 })
 
 function listenForSearch(form) {
@@ -33,12 +44,11 @@ function listenForSearch(form) {
         document.getElementById("searchResultContainer").innerHTML = "";
     } else {
         button.children[0].textContent = "Loading";
-        const courseID = await getCourseID();
+        const courseID = await getCourseID();        
         const assignments = await getCourseAssignments(courseID);
         const combinedWork = await getCourseAnnouncements(assignments, courseID);
         const input = form.children[0].value
         const searchResults = await searchCourseWork(combinedWork, input);
-        console.log(searchResults)
         await displayResults(searchResults);
         button.children[0].textContent = "Reset";
     }
@@ -60,12 +70,12 @@ async function displayResults(matches) {
     assignmentStyle.setAttribute("id", "assignment_style")
     assignmentStyle.setAttribute("rel", "stylesheet");
     assignmentStyle.setAttribute("href", chrome.runtime.getURL('resources/assignmentStyle.css'));
-    document.head.appendChild(assignmentStyle);
+    //document.head.appendChild(assignmentStyle);
 
     var announcementStyle = document.createElement("link");
     announcementStyle.setAttribute("rel", "stylesheet");
     announcementStyle.setAttribute("href", chrome.runtime.getURL('resources/announcementStyle.css'));
-    document.head.appendChild(announcementStyle);
+    //document.head.appendChild(announcementStyle);
     
     const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
     const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
@@ -224,17 +234,22 @@ function editDOMIDs(top_div) {
     }
 }
 
+function onCorrectPage() {
+    var pattern = new UrlPattern('https\\://classroom.google.com/u/:userID/c/:classID');
+    const match = pattern.match(window.location.href);
+    if (match == null) return false;
+    else return true;
+}
+
 function addFormStyle() {
     var styleLink = document.createElement("link");
     styleLink.setAttribute("rel", "stylesheet");
+    styleLink.setAttribute("id", "searchStyle")
     styleLink.setAttribute("href", chrome.runtime.getURL('resources/searchStyle.css'));
 
-    var fontawesome = document.createElement("script");
-    //fontawesome.setAttribute("src", "https://cdnjs.chttps://kit.fontawesome.com/715d9f8095.jsloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
-    fontawesome.setAttribute("crossorigin", "anonymous");
-
-    document.head.appendChild(styleLink);
-    document.head.appendChild(fontawesome);
+    if (document.getElementById("searchStyle") == null) {
+        document.head.appendChild(styleLink);
+    }
 }
 
 async function insertFormHTML() {
