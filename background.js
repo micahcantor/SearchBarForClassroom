@@ -9,15 +9,22 @@
       // save refresh and access tokens to storage
       // use access token
 
+pageChangeListener();
 onSearch();
 
+function pageChangeListener() {
+  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    console.log(changeInfo)
+    if (changeInfo.hasOwnProperty("title") && changeInfo.title.includes("https")) {
+      chrome.tabs.sendMessage(tabId, changeInfo)
+    }
+  })
+}
 function onSearch () {
   chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     var email = null;
-    if (request.message == "userEmail") {                                       // runs on page load and sends the user's email
-      email = request.email;
-      sendResponse("email set");
-    } else {                                                                    // message from search button press
+    if (request.message == "userEmail") email = request.email;                                      // runs on page load and sends the user's email
+    else {                                                                    // message from search button press
       (async function tokenFlow() {                                             // container function since the addListener callback can't be async
         const token_response = await getToken("access");
         var access_token = await token_response.access

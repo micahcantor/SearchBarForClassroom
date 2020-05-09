@@ -1,25 +1,27 @@
 
 // TODO: Improve search with quotations and types of posts
-// TODO: have extension load not only on refresh
+// DONE: have extension load not only on refresh
 // DONE: refactor get functions with fetch api 
 // DONE: reset auth token silently
 // TODO: display announcements in the stream or in a popup. 
     // DONE: fill teacher name and date into the assignment
     // DONE: fill basic info into announcements
     // fix announcement text overflow
-    // fix displaying assignments with comments
+    // DONE: fix inserting assignments into the correct div
+    // fix bug of some assignments not reacting to click
     // DONE: fix issue of doubling up style ids in announcements  
     // general style improvements
         // DONE: add loading icon 
         // DONE: add reset icon
         // ?DONE: visually separate the search results
 
-(async function() {
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     addFormStyle();
     getUserEmail();
-    let form = await insertFormHTML();
-    listenForSearch(form);
-})()
+    insertFormHTML().then(function(form) {
+        listenForSearch(form);
+    })
+})
 
 function listenForSearch(form) {
   var button = form.children[1];
@@ -36,6 +38,7 @@ function listenForSearch(form) {
         const combinedWork = await getCourseAnnouncements(assignments, courseID);
         const input = form.children[0].value
         const searchResults = await searchCourseWork(combinedWork, input);
+        console.log(searchResults)
         await displayResults(searchResults);
         button.children[0].textContent = "Reset";
     }
@@ -64,9 +67,12 @@ async function displayResults(matches) {
     announcementStyle.setAttribute("href", chrome.runtime.getURL('resources/announcementStyle.css'));
     document.head.appendChild(announcementStyle);
     
-    targetDiv = document.getElementById("ow43");
-    targetDiv.insertBefore(resultContainer, targetDiv.children[2]);
+    const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
+    const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
+    target.insertBefore(resultContainer, target.children[2]);
+    console.log(target)
 }
+
 
 async function displayAnnouncements(matches, resourceContainer) {
     let response = await fetch(chrome.runtime.getURL('resources/announcement.html'));
@@ -162,7 +168,8 @@ function getCourseAssignments(COURSE_ID) {
 
 function getCourseID() {
     return new Promise(function(resolve, reject) {
-        const courseName = document.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0].textContent;   // Finds element with the name of the course
+        const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild; 
+        const courseName = currentClassDiv.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0].textContent;   // Finds element with the name of the course
         const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
         const fields = "&fields=courses(id,name)"
         const URL = "https://classroom.googleapis.com/v1/courses?key=" + API_KEY + "&courseStates=ACTIVE" + fields
@@ -185,7 +192,8 @@ function getClassroomData(data) {
 }
 
 function getTeacherName() {
-    const firstAssignmentText = document.getElementsByClassName("YVvGBb asQXV")[0].textContent.split(" ")
+    const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
+    const firstAssignmentText = currentClassDiv.getElementsByClassName("YVvGBb asQXV")[0].textContent.split(" ")
     const teacherName = []
     if (firstAssignmentText != null) {
         for (const word of firstAssignmentText) {
@@ -201,9 +209,7 @@ function getUserEmail() {
     const userInfo = userElement.attributes.getNamedItem("aria-label").value;
     const emailParenthesis = userInfo.split(" ")[5]
     const email = emailParenthesis.slice(2, emailParenthesis.length - 1);
-    chrome.runtime.sendMessage({message: "userEmail", email: email}, function(response) {
-        console.log(response)
-    })
+    chrome.runtime.sendMessage({message: "userEmail", email: email})
 }
 
 function editDOMIDs(top_div) {
@@ -232,14 +238,20 @@ function addFormStyle() {
 }
 
 async function insertFormHTML() {
-    let form = await addFormHTML();
-    var intervalID = setInterval(function() {
-        targetDiv = document.getElementById("ow43");
-        if (targetDiv != null) {
-            targetDiv.insertBefore(form, targetDiv.children[1]);
-            clearInterval(intervalID);
-        }
-    }, 500);
+    const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
+    const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
+    var form = null;
+    if (target != null) form = target.querySelector("form[id=searchForm_1]")
+
+    if (form == null) {
+        form = await addFormHTML();
+        var intervalID = setInterval(function() {
+            if (target != null) {
+                target.insertBefore(form, target.children[1]);
+                clearInterval(intervalID);
+            }
+        }, 500);
+    }
     return form
 }
 
@@ -252,4 +264,3 @@ async function addFormHTML () {
 
 
 ///NOTE: put ttps://icons8.com in the about section of the extension
-

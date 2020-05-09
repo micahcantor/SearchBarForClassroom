@@ -6,6 +6,7 @@
   "manifest_version": 2,
   "permissions": [
     "background",
+    "tabs",
     "storage",
     "identity",
     "https://classroom.googleapis.com/*"
@@ -15,7 +16,7 @@
   },
   "content_scripts": [{
         "run_at": "document_end",
-        "matches": ["https://classroom.google.com/u/*/c/*"],
+        "matches": ["https://classroom.google.com/u/*"],
         "js": ["fuse.js", "start.js"]
       }
   ],
