@@ -16,9 +16,9 @@
     // DONE: fix ordering of assignments/announcements
 
     // load search bar after pressing back in the browser
-    // support materials in announcements
+    // DONE: support materials in announcements
         //DONE: links
-        // drive files
+        // DONE: drive files
     // match tokens to google account in storage to support multiple accounts
     // general style improvements
         // change color based on class theme
@@ -184,7 +184,15 @@ async function displayAnnounceMaterials(materials, container) {
             materialsHTML.push(doc.getElementById("link_DIV_1"))
         }
         if (material.driveFile) {
-            
+            const driveURL = material.driveFile.alternateLink + "&amp;authuser=" + userID;
+            doc.getElementById("file_A_2").setAttribute("href", driveURL);
+            doc.getElementById("file_A_2").setAttribute("aria-label", material.driveFile.title);
+            doc.getElementById("file_DIV_7").textContent = material.driveFile.title;
+            doc.getElementById("file_A_9").setAttribute("title", material.driveFile.title);
+            doc.getElementById("file_A_9").setAttribute("href", driveURL);
+            doc.getElementById("file_IMG_11").setAttribute("src", material.driveFile.thumbnailURL + "&amp;authuser=" + userID + "&amp;sz=w105-h70-c")
+            doc.getElementById("file_DIV_20").textContent = material.driveFile.title;
+            materialsHTML.push(doc.getElementById("file_DIV_1"))
         }
     }
 
