@@ -20,11 +20,12 @@ function pageChangeListener() {
     }
   })
 }
+
 function onSearch () {
   chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     var email = null;
-    if (request.message == "userEmail") email = request.email;                                      // runs on page load and sends the user's email
-    else {                                                                    // message from search button press
+    if (request.message == "userEmail") email = request.email;                   // runs on page load and sends the user's email
+    else {                                                                      // message from search button press
       (async function tokenFlow() {                                             // container function since the addListener callback can't be async
         const token_response = await getToken("access");
         var access_token = await token_response.access
@@ -58,7 +59,7 @@ function onSearch () {
             }
             else {                                                                // no refresh token found in storage
               console.log("no refresh token found")
-              access_token = await oauth2(email, true);// gets and saves new tokens from oauth2 interactive
+              access_token = await oauth2(email, true);                           // gets and saves new tokens from oauth2 interactive
               myHeaders.set("Authorization", "Bearer " + access_token);         
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
               data = await response.json();
@@ -205,6 +206,7 @@ function getAnnouncements(data, request) {
       }
       courseWorkValues.push({
             description : announce.text,
+            materials: announce.materials,
             type: "announcement",
             created: new Date(announce.creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'}),
             updated: updated,

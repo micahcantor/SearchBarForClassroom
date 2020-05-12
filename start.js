@@ -1,20 +1,31 @@
 
-// TODO: Improve search with quotations and types of posts
 // DONE: have extension load not only on refresh
 // DONE: refactor get functions with fetch api 
 // DONE: reset auth token silently
+
+// TODO: fix bug of some assignments not reacting to click
+// TODO: Inline comments and read me
+// TODO: Improve search with quotations and types of posts
 // TODO: display announcements in the stream or in a popup. 
     // DONE: fill teacher name and date into the assignment
     // DONE: fill basic info into announcements
     // DONE: fix inserting assignments into the correct div
     // DONE: fix issue of doubling up style ids in announcements  
     // DONE: fix content script running on class list overview page
-    // fix bug of some assignments not reacting to click
-    // fix announcement text overflow
+    // DONE: fix announcement text overflow
+    // DONE: fix ordering of assignments/announcements
+
+    // load search bar after pressing back in the browser
+    // support materials in announcements
+        //DONE: links
+        // drive files
+    // match tokens to google account in storage to support multiple accounts
     // general style improvements
+        // change color based on class theme
+        // put teacher's picture into announcement
         // DONE: add loading icon 
         // DONE: add reset icon
-        // ?DONE: visually separate the search results
+        // DONE: visually separate the search results
 
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (onCorrectPage()) {
@@ -49,6 +60,7 @@ function listenForSearch(form) {
         const combinedWork = await getCourseAnnouncements(assignments, courseID);
         const input = form.children[0].value
         const searchResults = await searchCourseWork(combinedWork, input);
+        console.log(searchResults);
         await displayResults(searchResults);
         button.children[0].textContent = "Reset";
     }
@@ -57,66 +69,38 @@ function listenForSearch(form) {
 
 async function displayResults(matches) {
 
-/*  Hide existing div with all the assignments
-    Reconstruct div structure for each matched assignment
-    Insert created structure beneath the form tag
- */
     var resultContainer = document.createElement("div");
     resultContainer.setAttribute("id", "searchResultContainer")
-    await displayAssignments(matches, resultContainer);
-    await displayAnnouncements(matches, resultContainer);
+    const assignments = await displayAssignments(matches);
+    const announcements = await displayAnnouncements(matches);
+    insertIntoContainer(assignments, announcements, resultContainer)
 
-    var assignmentStyle = document.createElement("link");
-    assignmentStyle.setAttribute("id", "assignment_style")
-    assignmentStyle.setAttribute("rel", "stylesheet");
-    assignmentStyle.setAttribute("href", chrome.runtime.getURL('resources/assignmentStyle.css'));
-    //document.head.appendChild(assignmentStyle);
-
-    var announcementStyle = document.createElement("link");
-    announcementStyle.setAttribute("rel", "stylesheet");
-    announcementStyle.setAttribute("href", chrome.runtime.getURL('resources/announcementStyle.css'));
-    //document.head.appendChild(announcementStyle);
-    
     const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
     const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
     target.insertBefore(resultContainer, target.children[2]);
-    console.log(target)
 }
 
-
-async function displayAnnouncements(matches, resourceContainer) {
-    let response = await fetch(chrome.runtime.getURL('resources/announcement.html'));
-    let text = await response.text()
-
-    var parser = new DOMParser();
-    var matchedAnnouncements = [];
-    for (const match of matches) {
-        if (match.item.type == "announcement") {
-            var doc = parser.parseFromString(text, 'text/html');
-            const teacher = getTeacherName();
-            doc.getElementById("DIV_1").setAttribute("data-stream-item-id", match.item.id);
-            doc.getElementById("SPAN_8").textContent = "Announcement" + match.item.description.split(0, 38) + "...";
-            doc.getElementById("SPAN_10").textContent = teacher;
-            doc.getElementById("SPAN_12").textContent = "Created " + match.item.created;
-            doc.getElementById("SPAN_13").textContent = match.item.created;
-            doc.getElementById("DIV_31").textContent = match.item.description;
-            if (match.item.updated != null) {
-                doc.getElementById("SPAN_13").textContent += " (Edited " + match.item.updated + ")"
-            }
-            matchedAnnouncements.push(doc.getElementById("DIV_1"));
-        }
+function insertIntoContainer(assignments, announcements, container) {
+    const combined = {
+        work: assignments.htmls.concat(announcements.htmls),
+        indeces: assignments.indeces.concat(announcements.indeces)
     }
-    for (const div of matchedAnnouncements) {
-        resourceContainer.appendChild(div);
+
+    for (i = 0; i < combined.work.length; i++) {
+        const position = combined.indeces.indexOf(i);
+        const value = combined.work[position];
+        container.appendChild(value);
     }
+    return container;
 }
 
-async function displayAssignments(matches, resourceContainer) {
+async function displayAssignments(matches) {
     let response = await fetch(chrome.runtime.getURL('resources/assignment.html'));
     let text = await response.text();
 
     var parser = new DOMParser();
-    var matchedAssignments = [];
+    var assignmentsObject = {htmls: [], indeces: []};
+    var idx = 0;
     for (const match of matches) {
         if (match.item.type == "assignment") {
             var doc = parser.parseFromString(text, 'text/html');
@@ -126,11 +110,101 @@ async function displayAssignments(matches, resourceContainer) {
             doc.getElementById("as_SPAN_12").textContent = "Assignment: " + match.item.title;
             doc.getElementById("as_SPAN_14").textContent = teacher + "posted a new assignment: " + match.item.title;
             match.item.updated == null ? doc.getElementById("as_SPAN_17").textContent = match.item.created : doc.getElementById("as_SPAN_17").textContent = match.item.updated;
-            matchedAssignments.push(doc.getElementById("as_DIV_1"));
+            
+            assignmentsObject.htmls.push(doc.getElementById("as_DIV_1"));
+            assignmentsObject.indeces.push(idx)
+        }
+        idx++;
+    }
+
+    addResourceStyle("assignment");
+    return assignmentsObject;
+}
+
+async function displayAnnouncements(matches) {
+    let response = await fetch(chrome.runtime.getURL('resources/announcement.html'));
+    let text = await response.text()
+
+    var parser = new DOMParser();
+    var announcementsObject = {htmls: [], indeces: []};
+    var idx = 0;
+    for (const match of matches) {
+        if (match.item.type == "announcement") {
+            var doc = parser.parseFromString(text, 'text/html');
+            const teacher = getTeacherName();
+
+            doc.getElementById("DIV_1").setAttribute("data-stream-item-id", match.item.id);
+            doc.getElementById("SPAN_8").textContent = "Announcement" + match.item.description.split(0, 38) + "...";
+            doc.getElementById("SPAN_10").textContent = teacher;
+            doc.getElementById("SPAN_12").textContent = "Created " + match.item.created;
+            doc.getElementById("SPAN_13").textContent = match.item.created;
+            doc.getElementById("DIV_31").textContent = match.item.description;
+            doc.getElementById("DIV_32").setAttribute("data-stream-item-id", match.item.id)
+
+            if (match.item.updated != null) 
+                doc.getElementById("SPAN_13").textContent += " (Edited " + match.item.updated + ")"
+
+            if (match.item.materials != null) {
+                var materialContainer = doc.getElementById("DIV_32");
+                await displayAnnounceMaterials(match.item.materials, materialContainer)
+            }
+
+            announcementsObject.htmls.push(doc.getElementById("DIV_1"));
+            announcementsObject.indeces.push(idx)
+        }
+        idx++;
+    }
+    addResourceStyle("announcement");
+    return announcementsObject
+}
+
+async function displayAnnounceMaterials(materials, container) {
+    //TODO: add support for drive files in material.html
+
+    let response = await fetch(chrome.runtime.getURL('resources/materialTemplate.html'));
+    let text = await response.text();
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(text, 'text/html');
+
+    var pattern = new UrlPattern('https\\://classroom.google.com/u/:userID/c/:classID');
+    const URL = window.location.href;
+    const userID = pattern.match(URL)[0];
+
+    var materialsHTML = []
+    for (const material of materials) {
+        console.log(material)
+        if (material.link) {
+            doc.getElementById("link_A_2").setAttribute("href", material.link.url);
+            doc.getElementById("link_A_2").setAttribute("data-focus-id", "eTkQDe-" + material.link.url);
+            doc.getElementById("link_A_9").setAttribute("data-focus-id", "hSRGPd-" + material.link.url)
+            doc.getElementById("link_DIV_7").innerText = material.link.title;
+            doc.getElementById("link_IMG_11").setAttribute("src","https://classroom.google.com/u/" + userID + "/webthumbnail?url=" + material.link.url);
+            doc.getElementById("link_DIV_13").innerText = material.link.title;
+            doc.getElementById("link_DIV_15").innerText = material.link.url;
+            materialsHTML.push(doc.getElementById("link_DIV_1"))
+        }
+        if (material.driveFile) {
+            
         }
     }
-    for (const div of matchedAssignments) {
-        resourceContainer.appendChild(div);
+
+    materialsHTML.forEach((material) => {
+        console.log(material)
+        container.appendChild(material)
+    })
+
+    addResourceStyle("material");
+}
+
+function addResourceStyle(type) {
+    const resourceStyle = type + "Style"
+    var styleLink = document.createElement("link");
+    styleLink.setAttribute("rel", "stylesheet");
+    styleLink.setAttribute("id", resourceStyle)
+    styleLink.setAttribute("href", chrome.runtime.getURL("resources/" + resourceStyle + ".css"));
+
+    if (document.getElementById(resourceStyle) == null) {
+        document.head.appendChild(styleLink);
     }
 }
 
@@ -150,7 +224,7 @@ function searchCourseWork(courseWork, input) {
 function getCourseAnnouncements(courseWorkValues, COURSE_ID) {
     return new Promise(function(resolve, reject) {
         const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
-        const fields = "&fields=announcements(id,text,creationTime,updateTime)"
+        const fields = "&fields=announcements(id,text,materials,creationTime,updateTime)"
         const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/announcements?key=" + API_KEY + fields
         const reqOptions = {
             url: URL,
