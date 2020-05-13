@@ -106,9 +106,9 @@ function oauth2(email, interactive) {
 
   return new Promise (function(resolve, reject) {
     chrome.identity.launchWebAuthFlow({url: auth_url, interactive: interactive}, async function(response) {
-      const code = response.slice(response.indexOf("=") + 1, response.indexOf("&"))
+      const code = response.slice(response.indexOf("=") + 1, response.indexOf("&"));
       token = await exchangeCode(code, client_id, redirect_uri);
-      resolve(token)
+      resolve(token);
     })
   })
 }
