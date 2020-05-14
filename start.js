@@ -15,7 +15,7 @@
     // DONE: fix announcement text overflow
     // DONE: fix ordering of assignments/announcements
 
-    // load search bar after pressing back in the browser
+    // DONE: load search bar after pressing back in the browser
     // DONE: support materials in announcements
         //DONE: links
         // DONE: drive files
@@ -36,35 +36,31 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         })
     } 
     else {
-        var formList = document.getElementsByClassName("search");
-        for (const form of formList) {
-            form.remove();
-        }
         const searchStyle = document.getElementById("searchStyle");
         if (searchStyle != null) searchStyle.remove();
     }
 })
 
 function listenForSearch(form) {
-  var button = form.children[1];
-  button.addEventListener("click", async function(event) {            // when search button is pressed
-    event.preventDefault();
-    if (button.children[0].textContent == "Reset") {
-        button.children[0].textContent = "Search";
-        form.children[0].value = "";
-        document.getElementById("searchResultContainer").innerHTML = "";
-    } else {
-        button.children[0].textContent = "Loading";
-        const courseID = await getCourseID();        
-        const assignments = await getCourseAssignments(courseID);
-        const combinedWork = await getCourseAnnouncements(assignments, courseID);
-        const input = form.children[0].value
-        const searchResults = await searchCourseWork(combinedWork, input);
-        console.log(searchResults);
-        await displayResults(searchResults);
-        button.children[0].textContent = "Reset";
-    }
-  });
+    var button = form.children[1];
+    button.addEventListener("click", async function(event) {            // when search button is pressed
+        event.preventDefault();
+        if (button.children[0].textContent == "Reset") {
+            button.children[0].textContent = "Search";
+            form.children[0].value = "";
+            const currentClassDiv = getCurrentClassDiv();
+            currentClassDiv.querySelectorAll("div[id=searchResultContainer").forEach((container) => container.remove())
+        } else {
+            button.children[0].textContent = "Loading";
+            const courseID = await getCourseID();        
+            const assignments = await getCourseAssignments(courseID);
+            const combinedWork = await getCourseAnnouncements(assignments, courseID);
+            const input = form.children[0].value
+            const searchResults = await searchCourseWork(combinedWork, input);
+            await displayResults(searchResults);
+            button.children[0].textContent = "Reset";
+        }
+    });
 }
 
 async function displayResults(matches) {
@@ -75,7 +71,7 @@ async function displayResults(matches) {
     const announcements = await displayAnnouncements(matches);
     insertIntoContainer(assignments, announcements, resultContainer)
 
-    const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
+    const currentClassDiv = getCurrentClassDiv();
     const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
     target.insertBefore(resultContainer, target.children[2]);
 }
@@ -159,7 +155,6 @@ async function displayAnnouncements(matches) {
 }
 
 async function displayAnnounceMaterials(materials, container) {
-    //TODO: add support for drive files in material.html
 
     let response = await fetch(chrome.runtime.getURL('resources/materialTemplate.html'));
     let text = await response.text();
@@ -172,7 +167,6 @@ async function displayAnnounceMaterials(materials, container) {
 
     var materialsHTML = []
     for (const material of materials) {
-        console.log(material)
         if (material.link) {
             doc.getElementById("link_A_2").setAttribute("href", material.link.url);
             doc.getElementById("link_A_2").setAttribute("data-focus-id", "eTkQDe-" + material.link.url);
@@ -197,7 +191,6 @@ async function displayAnnounceMaterials(materials, container) {
     }
 
     materialsHTML.forEach((material) => {
-        console.log(material)
         container.appendChild(material)
     })
 
@@ -260,7 +253,7 @@ function getCourseAssignments(COURSE_ID) {
 
 function getCourseID() {
     return new Promise(function(resolve, reject) {
-        const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild; 
+        const currentClassDiv = getCurrentClassDiv(); 
         const courseName = currentClassDiv.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0].textContent;   // Finds element with the name of the course
         const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
         const fields = "&fields=courses(id,name)"
@@ -284,7 +277,7 @@ function getClassroomData(data) {
 }
 
 function getTeacherName() {
-    const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
+    const currentClassDiv = getCurrentClassDiv();
     const firstAssignmentText = currentClassDiv.getElementsByClassName("YVvGBb asQXV")[0].textContent.split(" ")
     const teacherName = []
     if (firstAssignmentText != null) {
@@ -323,6 +316,13 @@ function onCorrectPage() {
     else return true;
 }
 
+function getCurrentClassDiv() {
+    const classDivContainer = document.getElementsByClassName("v7wOcf ZGnOx")[0];
+    const classDivs = classDivContainer.getElementsByClassName("dbEQNc");
+    const currentClassDiv = classDivs[classDivs.length - 1];
+    return currentClassDiv;
+}
+
 function addFormStyle() {
     var styleLink = document.createElement("link");
     styleLink.setAttribute("rel", "stylesheet");
@@ -335,7 +335,11 @@ function addFormStyle() {
 }
 
 async function insertFormHTML() {
-    const currentClassDiv = document.getElementsByClassName("v7wOcf ZGnOx")[0].lastChild;
+    const forms = document.getElementsByTagName("form");
+    for (const form of forms) 
+        form.remove()
+    
+    const currentClassDiv = getCurrentClassDiv();
     const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
     var form = null;
     if (target != null) form = target.querySelector("form[id=searchForm_1]")
@@ -347,7 +351,7 @@ async function insertFormHTML() {
                 target.insertBefore(form, target.children[1]);
                 clearInterval(intervalID);
             }
-        }, 500);
+        }, 250);
     }
     return form
 }
