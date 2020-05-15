@@ -1,31 +1,33 @@
 
-// DONE: have extension load not only on refresh
-// DONE: refactor get functions with fetch api 
-// DONE: reset auth token silently
+/* DONE: have extension load not only on refresh
+DONE: refactor get functions with fetch api 
+DONE: reset auth token silently
 
-// TODO: fix bug of some assignments not reacting to click
-// TODO: Inline comments and read me
-// TODO: Improve search with quotations and types of posts
-// TODO: display announcements in the stream or in a popup. 
-    // DONE: fill teacher name and date into the assignment
-    // DONE: fill basic info into announcements
-    // DONE: fix inserting assignments into the correct div
-    // DONE: fix issue of doubling up style ids in announcements  
-    // DONE: fix content script running on class list overview page
-    // DONE: fix announcement text overflow
-    // DONE: fix ordering of assignments/announcements
+TODO: fix bug of some assignments not reacting to click
+TODO: Inline comments and read me
+TODO: Improve search with quotations and types of posts
+TODO: Improve security of client secret
+TODO: match tokens to google account in storage to support multiple accounts
 
-    // DONE: load search bar after pressing back in the browser
-    // DONE: support materials in announcements
-        //DONE: links
-        // DONE: drive files
-    // match tokens to google account in storage to support multiple accounts
-    // general style improvements
-        // change color based on class theme
-        // put teacher's picture into announcement
-        // DONE: add loading icon 
-        // DONE: add reset icon
-        // DONE: visually separate the search results
+TODO: display announcements in the stream or in a popup. 
+    DONE: fill teacher name and date into the assignment
+    DONE: fill basic info into announcements
+    DONE: fix inserting assignments into the correct div
+    DONE: fix issue of doubling up style ids in announcements  
+    DONE: fix content script running on class list overview page
+    DONE: fix announcement text overflow
+    DONE: fix ordering of assignments/announcements
+
+    DONE: load search bar after pressing back in the browser
+    DONE: support materials in announcements
+        DONE: links
+        DONE: drive files
+    general style improvements
+        change color based on class theme
+        put teacher's picture into announcement
+        DONE: add loading icon 
+        DONE: add reset icon
+        DONE: visually separate the search results */
 
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (onCorrectPage()) {
@@ -45,7 +47,9 @@ function listenForSearch(form) {
     var button = form.children[1];
     button.addEventListener("click", async function(event) {            // when search button is pressed
         event.preventDefault();
-        if (button.children[0].textContent == "Reset") {
+        if (button.children[0].textContent == "Search" && form.children[0].value == "")
+            button.children[0].textContent = "Reset"
+        else if (button.children[0].textContent == "Reset") {
             button.children[0].textContent = "Search";
             form.children[0].value = "";
             const currentClassDiv = getCurrentClassDiv();
@@ -95,6 +99,11 @@ async function displayAssignments(matches) {
     let text = await response.text();
 
     var parser = new DOMParser();
+
+    var pattern = new UrlPattern('https\\://classroom.google.com/u/:userID/c/:classID');
+    const URL = window.location.href;
+    const userID = pattern.match(URL).userID;
+
     var assignmentsObject = {htmls: [], indeces: []};
     var idx = 0;
     for (const match of matches) {
@@ -102,10 +111,20 @@ async function displayAssignments(matches) {
             var doc = parser.parseFromString(text, 'text/html');
             editDOMIDs(doc.getElementById("as_DIV_1"));
             const teacher = getTeacherName();
+
             doc.getElementById("as_DIV_1").setAttribute("data-stream-item-id", match.item.id);
             doc.getElementById("as_SPAN_12").textContent = "Assignment: " + match.item.title;
             doc.getElementById("as_SPAN_14").textContent = teacher + "posted a new assignment: " + match.item.title;
-            match.item.updated == null ? doc.getElementById("as_SPAN_17").textContent = match.item.created : doc.getElementById("as_SPAN_17").textContent = match.item.updated;
+            doc.getElementById("as_SPAN_17").textContent = match.item.updated || match.item.created;
+            doc.getElementById("as_DIV_20").setAttribute("data-focus-id", "IlqLNc-" + match.item.id);
+            doc.getElementById("as_DIV_27").setAttribute("data-stream-item-id", match.item.id)
+            doc.getElementById("as_DIV_34").setAttribute("data-stream-item-id", match.item.id);
+            doc.getElementById("as_A_35").setAttribute("data-focus-id", "LPEWg|" + match.item.id);
+
+            doc.getElementById("as_DIV_1").addEventListener("click", () => {
+                const url = match.item.link.substring(0, 28) + "/u/" + userID + match.item.link.substring(28);
+                chrome.runtime.sendMessage({url: url, message: "assignment click"})
+            })
             
             assignmentsObject.htmls.push(doc.getElementById("as_DIV_1"));
             assignmentsObject.indeces.push(idx)
@@ -229,6 +248,7 @@ function getCourseAnnouncements(courseWorkValues, COURSE_ID) {
         const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/announcements?key=" + API_KEY + fields
         const reqOptions = {
             url: URL,
+            message: "auth",
             type: "announcements",
             values: courseWorkValues
         }
@@ -240,10 +260,11 @@ function getCourseAnnouncements(courseWorkValues, COURSE_ID) {
 function getCourseAssignments(COURSE_ID) {
     return new Promise(function(resolve, reject) {
         const API_KEY = "AIzaSyARs46G8mYoI1nzgPJztAzdYOdYoiZXTac";
-        const fields = "&fields=courseWork(id,title,description,creationTime,updateTime)"
+        const fields = "&fields=courseWork(id,title,description,alternateLink,creationTime,updateTime)"
         const URL = "https://classroom.googleapis.com/v1/courses/" + COURSE_ID + "/courseWork?key=" + API_KEY + fields
         const reqOptions = {
             url: URL,
+            message: "auth",
             type: "assignments"
         }
         getClassroomData(reqOptions)
@@ -261,6 +282,7 @@ function getCourseID() {
         const reqOptions = {
             url: URL,
             type: "courseID",
+            message: "auth",
             courseName : courseName
         }
         getClassroomData(reqOptions)
@@ -319,9 +341,18 @@ function onCorrectPage() {
 function getCurrentClassDiv() {
     const classDivContainer = document.getElementsByClassName("v7wOcf ZGnOx")[0];
     const classDivs = classDivContainer.getElementsByClassName("dbEQNc");
-    const currentClassDiv = classDivs[classDivs.length - 1];
-    return currentClassDiv;
+    for (const div of classDivs) {
+        const classNameInDiv = div.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0];
+        const classNameInHeader = document.getElementById("UGb2Qe")
+        if (classNameInDiv == null || classNameInHeader == null) {
+            return classDivs[classDivs.length - 1]
+        }
+        else if (classNameInDiv.innerText == classNameInHeader.innerText) {
+            return div
+        }
+    }
 }
+
 
 function addFormStyle() {
     var styleLink = document.createElement("link");

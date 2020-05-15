@@ -9,10 +9,11 @@
     "tabs",
     "storage",
     "identity",
-    "https://classroom.googleapis.com/*"
+    "https://classroom.googleapis.com/*",
+    "https://classroom-searchbar.herokuapp.com/*"
   ],
   "background": {
-      "scripts": ["background.js"]
+      "page": "background.html"
   },
   "content_scripts": [{
         "run_at": "document_end",
