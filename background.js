@@ -59,6 +59,7 @@ function onSearch () {
             const refresh_token = await token_response.refresh;
 
             if (refresh_token != null) {                                          // if refresh token found in storage
+
               console.log("refresh token found")
               access_token = await refreshAccess(refresh_token);                  // update access token with refresh token
               saveTokens(refresh_token, access_token);                             // update storage with new tokens
@@ -66,15 +67,17 @@ function onSearch () {
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
               data = await response.json();
               sendResponse(cleanData(request, data));
+
             }
             else {                                                                // no refresh token found in storage
+
               console.log("no refresh token found")
               access_token = await oauth2(email, true);                           // gets and saves new tokens from oauth2 interactive
               myHeaders.set("Authorization", "Bearer " + access_token);         
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
               data = await response.json();
-              console.log(data)
               sendResponse(cleanData(request, data));
+
             }
           })
       })()
@@ -123,28 +126,6 @@ function oauth2(email, interactive) {
   })
 }
 
-async function exchangeCode(code, client_id, redirect_uri) {
-  const url = 'https://www.googleapis.com/oauth2/v4/token'
-  const client_secret = "FOVBbXcMD84uFzIHpYvNOBOk";
-  const body ="code=" + code + "&" +
-              "client_id=" + client_id + "&" +
-              "client_secret=" + client_secret + "&" +
-              "redirect_uri=" + redirect_uri + "&" + 
-              "grant_type=authorization_code"
-
-  const response = await fetch(url, {
-      method: "POST",
-      headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: body
-  })
-
-  const json = await response.json();
-  saveTokens(json.refresh_token, json.access_token)
-  return json.access_token
-}
-
 async function exchangeCodeSafe(code) {
   const url = "https://classroom-searchbar.herokuapp.com/exchange"
 
@@ -158,27 +139,6 @@ async function exchangeCodeSafe(code) {
   const json = await response.json()
   saveTokens(json.refresh, json.access)
   return json.access
-}
-
-async function refreshAccess(refresh_token) {
-  const url = "https://classroom-searchbar.herokuapp.com/token";
-  const client_id = "809411372636-42mpeh1d7ntk8vor0kuhtsg66ug1olcd.apps.googleusercontent.com";
-  const client_secret = "FOVBbXcMD84uFzIHpYvNOBOk";
-  const body ="client_id=" + client_id + "&" +
-              "client_secret=" + client_secret + "&" +
-              "refresh_token=" + refresh_token + "&" + 
-              "grant_type=refresh_token"
-
-  const response = await fetch(url, {
-      method: "POST",
-      headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: body
-  })
-  const json = await response.json();
-  const token = await json.access_token;
-  return token
 }
 
 async function refreshAccesSafe(refresh_token) {
