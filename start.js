@@ -341,7 +341,16 @@ function onCorrectPage() {
 function getCurrentClassDiv() {
     const classDivContainer = document.getElementsByClassName("v7wOcf ZGnOx")[0];
     const classDivs = classDivContainer.getElementsByClassName("dbEQNc");
-    return classDivs[classDivs.length - 1]
+    for (const div of classDivs) {
+        const classNameInDiv = div.getElementsByClassName("tNGpbb uTUgB YVvGBb")[0];
+        const classNameInHeader = document.getElementById("UGb2Qe")
+        if (classNameInDiv == null || classNameInHeader == null) {
+            return classDivs[classDivs.length - 1]
+        }
+        else if (classNameInDiv.innerText == classNameInHeader.innerText) {
+            return div
+        }
+    }
 }
 
 
