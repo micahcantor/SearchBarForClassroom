@@ -8,7 +8,6 @@
     // else send get request to server/auth
       // save refresh and access tokens to storage
       // use access token
-
 pageChangeListener();
 assignmentCLickListener();
 onSearch();
@@ -66,6 +65,7 @@ function onSearch () {
               myHeaders.set("Authorization", "Bearer " + access_token);         
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
               data = await response.json();
+              console.log(data)
               sendResponse(cleanData(request, data));
 
             }
@@ -221,7 +221,7 @@ function saveTokens(refresh_token, access_token) {
     'access': access_token
   }, 
   function callback() {
-    console.log("refresh token stored")
+    console.log("new tokens stored")
   })
 }
 
