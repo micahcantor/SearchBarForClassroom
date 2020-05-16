@@ -1,14 +1,12 @@
 Part I: Classroom API Scopes
 
-In order to search through and sort your Google Classroom assignments and announcements, this extension requires access to read, but not alter, your Classroom courses, assignments, and announcements. Specifically, the extension requires four scopes:
+In order to search through and sort your Google Classroom assignments and announcements, this extension requires access to read, but not alter, your Classroom courses, assignments, and announcements. Specifically, the extension requires three scopes:
 - View your Google Classroom classes.
 This scope is required to identify which class you are currently viewing, so it can then sort through the assignments and announcements of that class.
 - Manage your coursework and view your grades in Google Classroom.
 Only the first part of this scope (“manage your coursework”) is needed and used by this extension. This allows the extension to access a list of your Classroom assignments and read their titles and descriptions. The terms inputted in the search bar are then matched against these titles and descriptions to find the closest matches. The grades of the user for these assignments are not accessed in any way by the extension. 
 - View your announcements in Google Classroom.
 Similarly to assignments, this scope allows the extension to view a list of your courses’ announcements. The extension uses this data on to search through the announcements and return matching results. 
-- View coursework and grades for students in the Google Classroom classes you teach or administer.
-This scope is only necessary for users of the extension that are teachers or administers. Similarly to the scopes above for students, this scope allows the extension to search through the assignments and announcements they have created in their stream. The grades for these assignments are not accessed in any way by the extension.
 
 Part II: Other Permissions
 
