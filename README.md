@@ -1,7 +1,7 @@
 # ClassroomSearchbar
 A simple chrome extension to add a search bar to Google Classroom. Uses the Classroom API to find assignments and announcements matching the search criteria, then displays the results in the stream.
 
-https://github.com/micahcantor/ClassroomSearchbar/blob/master/Demo.png
+![demo](https://github.com/micahcantor/ClassroomSearchbar/blob/master/Demo.png "Demo Image")
 
 # Installation Guide
 I'm still working on getting the extension published to the Chrome Web Store, so for now you will have to upload it to your browser manually. 
