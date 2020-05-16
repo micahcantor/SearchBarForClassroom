@@ -61,7 +61,7 @@ function onSearch () {
             if (refresh_token != null) {                                          // if refresh token found in storage
 
               console.log("refresh token found")
-              access_token = await refreshAccess(refresh_token);                  // update access token with refresh token
+              access_token = await refreshAccessSafe(refresh_token);                  // update access token with refresh token
               saveTokens(refresh_token, access_token);                             // update storage with new tokens
               myHeaders.set("Authorization", "Bearer " + access_token);         
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
@@ -142,7 +142,7 @@ async function exchangeCodeSafe(code) {
 }
 
 async function refreshAccesSafe(refresh_token) {
-  const url = "http://localhost:3000/refresh"
+  const url = "https://classroom-searchbar.herokuapp.com/refresh"
 
   const response = await fetch(url, {
     method: "POST",
@@ -156,7 +156,6 @@ async function refreshAccesSafe(refresh_token) {
 }
 
 function getCourseID(data, request) {
-  console.log(data)
   var courseList = data.courses
   for (const course of courseList) {
     if (course.name == request.courseName) {
@@ -195,7 +194,6 @@ function getAssignments(data) {
 }
 
 function getAnnouncements(data, request) {
-  console.log(data)
   var announcements = data.announcements;
   var courseWorkValues = request.values;
   if (announcements != null) {

@@ -1,34 +1,4 @@
 
-/* DONE: have extension load not only on refresh
-DONE: refactor get functions with fetch api 
-DONE: reset auth token silently
-
-TODO: fix bug of some assignments not reacting to click
-TODO: Inline comments and read me
-TODO: Improve search with quotations and types of posts
-TODO: Improve security of client secret
-TODO: match tokens to google account in storage to support multiple accounts
-
-TODO: display announcements in the stream or in a popup. 
-    DONE: fill teacher name and date into the assignment
-    DONE: fill basic info into announcements
-    DONE: fix inserting assignments into the correct div
-    DONE: fix issue of doubling up style ids in announcements  
-    DONE: fix content script running on class list overview page
-    DONE: fix announcement text overflow
-    DONE: fix ordering of assignments/announcements
-
-    DONE: load search bar after pressing back in the browser
-    DONE: support materials in announcements
-        DONE: links
-        DONE: drive files
-    general style improvements
-        change color based on class theme
-        put teacher's picture into announcement
-        DONE: add loading icon 
-        DONE: add reset icon
-        DONE: visually separate the search results */
-
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (onCorrectPage()) {
         addFormStyle();
@@ -394,5 +364,9 @@ async function addFormHTML () {
     return parser.parseFromString(text, "text/html").getElementById("searchForm_1");
 }
 
+
+/*
+    <a target="_blank" href="https://icons8.com/icons/set/search--v1">Search icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+*/
 
 ///NOTE: put ttps://icons8.com in the about section of the extension
