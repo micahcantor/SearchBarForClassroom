@@ -141,7 +141,7 @@ async function exchangeCodeSafe(code) {
   return json.access
 }
 
-async function refreshAccesSafe(refresh_token) {
+async function refreshAccessSafe(refresh_token) {
   const url = "https://classroom-searchbar.herokuapp.com/refresh"
 
   const response = await fetch(url, {
