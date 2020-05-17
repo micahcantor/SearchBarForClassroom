@@ -9,9 +9,18 @@
       // save refresh and access tokens to storage
       // use access token
 
+initEmptyStorage();
 pageChangeListener();
 assignmentCLickListener();
 onSearch();
+
+function initEmptyStorage() {
+  chrome.storage.sync.get(null, contents => {
+    if (Object.entries(contents).length == 0) {
+      chrome.storage.sync.set('users' = {}, () => console.log("initialized empty storage"))
+    }
+  });
+}
 
 function pageChangeListener() {
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
@@ -25,8 +34,8 @@ function assignmentCLickListener() {
   chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.message == "assignment click") {
       chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
-        const tabIndex = tabs[0].index
-        chrome.tabs.create({url: request.url, index: tabIndex + 1})
+        const tabIndex = tabs[0].index;
+        chrome.tabs.create({url: request.url, index: tabIndex + 1});
       });
     }
   })
@@ -90,18 +99,6 @@ function onSearch () {
   })
 }
 
-function cleanData (request, data) {
-  if (request.type == "courseID") {
-    return getCourseID(data, request);
-  }
-  else if (request.type == "assignments") {
-    return getAssignments(data);
-  }
-  else if (request.type == "announcements") {
-    return getAnnouncements(data, request);
-  }
-}
-
 function oauth2() {
   var auth_url = "https://accounts.google.com/o/oauth2/auth?";
   const client_id = "809411372636-42mpeh1d7ntk8vor0kuhtsg66ug1olcd.apps.googleusercontent.com";
@@ -156,6 +153,18 @@ async function refreshAccessSafe(refresh_token) {
   })
   const json = await response.json()
   return json.access_token
+}
+
+function cleanData (request, data) {
+  if (request.type == "courseID") {
+    return getCourseID(data, request);
+  }
+  else if (request.type == "assignments") {
+    return getAssignments(data);
+  }
+  else if (request.type == "announcements") {
+    return getAnnouncements(data, request);
+  }
 }
 
 function getCourseID(data, request) {
@@ -228,6 +237,15 @@ function saveTokens(refresh_token, access_token) {
   })
 }
 
+function saveTokensMulti(refresh_token, access_token, userIndex) {
+  chrome.storage.sync.get(["users"], users => {
+    users[userIndex] = {
+      'refresh': refresh_token,
+      'access': access_token
+    }
+  }, () => console.log("new tokens stored"))
+}
+
 function getToken(type) {
   return new Promise(function(resolve, reject) {
     chrome.storage.sync.get([type], function (result) {
@@ -236,3 +254,10 @@ function getToken(type) {
   })
 }
 
+function getTokenMulti(type, userIndex) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(['users'], users => {
+      resolve(users.userIndex.type);
+    })
+  })
+}
