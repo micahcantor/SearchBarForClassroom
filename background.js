@@ -23,8 +23,12 @@ function pageChangeListener() {
 
 function assignmentCLickListener() {
   chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.message == "assignment click") 
-      chrome.tabs.create({url: request.url})
+    if (request.message == "assignment click") {
+      chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
+        const tabIndex = tabs[0].index
+        chrome.tabs.create({url: request.url, index: tabIndex + 1})
+      });
+    }
   })
 }
 
