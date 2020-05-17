@@ -8,6 +8,7 @@
     // else send get request to server/auth
       // save refresh and access tokens to storage
       // use access token
+chrome.storage.sync.clear();
 
 pageChangeListener();
 assignmentCLickListener();
@@ -30,9 +31,7 @@ function assignmentCLickListener() {
 
 function onSearch () {
   chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
-    var email = null;
-    if (request.message == "userEmail") email = request.email;                   // runs on page load and sends the user's email
-    else if (request.message == "auth") {                                        // message from search button press
+    if (request.message == "auth") {                                        // message from search button press
       (async function tokenFlow() {                                             // container function since the addListener callback can't be async
 
         var token_response = await getToken("access");                        // gets access token from browser local storage 
@@ -73,7 +72,7 @@ function onSearch () {
             else {                                                                // no refresh token found in storage
 
               console.log("no refresh token found")
-              access_token = await oauth2(email, true);                           // gets and saves new tokens from oauth2 interactive
+              access_token = await oauth2();                           // gets and saves new tokens from oauth2 interactive
               console.log("access token obtained through interactive oauth2")
               myHeaders.set("Authorization", "Bearer " + access_token);         
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
@@ -100,7 +99,7 @@ function cleanData (request, data) {
   }
 }
 
-function oauth2(email, interactive) {
+function oauth2() {
   var auth_url = "https://accounts.google.com/o/oauth2/auth?";
   const client_id = "809411372636-42mpeh1d7ntk8vor0kuhtsg66ug1olcd.apps.googleusercontent.com";
   const redirect_uri = "https://hkipfjomcdcmllhnkpmbndggbgdicmic.chromiumapp.org/oauth2";
@@ -112,7 +111,6 @@ function oauth2(email, interactive) {
     access_type: "offline",
     prompt: "consent",
     scope: "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me https://www.googleapis.com/auth/classroom.announcements.readonly https://www.googleapis.com/auth/classroom.coursework.students",
-    login_hint: email
   }
 
   const url = new URLSearchParams(Object.entries(auth_params));
@@ -120,7 +118,7 @@ function oauth2(email, interactive) {
   auth_url += url;
 
   return new Promise (function(resolve, reject) {
-    chrome.identity.launchWebAuthFlow({url: auth_url, interactive: interactive}, async function(response) {
+    chrome.identity.launchWebAuthFlow({url: auth_url, interactive: true}, async function(response) {
       const code = response.slice(response.indexOf("=") + 1, response.indexOf("&"));
       token = await exchangeCodeSafe(code);
       resolve(token);

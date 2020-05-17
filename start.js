@@ -2,7 +2,6 @@
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (onCorrectPage()) {
         addFormStyle();
-        getUserEmail();
         insertFormHTML().then(function(form) {
             listenForSearch(form);
         })
@@ -281,14 +280,6 @@ function getTeacherName() {
         }
         return teacherName.join(" ") + " "
     }
-}
-
-function getUserEmail() {
-    const userElement = document.getElementsByClassName("gb_D gb_Ra gb_i")[0]
-    const userInfo = userElement.attributes.getNamedItem("aria-label").value;
-    const emailParenthesis = userInfo.split(" ")[5]
-    const email = emailParenthesis.slice(2, emailParenthesis.length - 1);
-    chrome.runtime.sendMessage({message: "userEmail", email: email})
 }
 
 function editDOMIDs(top_div) {
