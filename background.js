@@ -8,7 +8,6 @@
     // else send get request to server/auth
       // save refresh and access tokens to storage
       // use access token
-chrome.storage.sync.clear();
 
 pageChangeListener();
 assignmentCLickListener();
