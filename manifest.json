@@ -10,7 +10,6 @@
     "128": "icons/icons8-search-128.png"
   },
   "permissions": [
-    "background",
     "tabs",
     "storage",
     "identity",
@@ -22,7 +21,7 @@
   },
   "content_scripts": [{
         "run_at": "document_end",
-        "matches": ["https://classroom.google.com/u/*"],
+        "matches": ["https://classroom.google.com/*"],
         "js": ["fuse.js", "url-pattern.js", "start.js"]
       }
   ],
@@ -34,7 +33,8 @@
       "profile",
       "https://www.googleapis.com/auth/classroom.courses.readonly",
       "https://www.googleapis.com/auth/classroom.coursework.me",
-      "https://www.googleapis.com/auth/classroom.announcements.readonly"
+      "https://www.googleapis.com/auth/classroom.announcements.readonly",
+      "https://www.googleapis.com/auth/classroom.coursework.students"
     ]
   },
   "web_accessible_resources": [

@@ -8,6 +8,7 @@
     // else send get request to server/auth
       // save refresh and access tokens to storage
       // use access token
+      
 pageChangeListener();
 assignmentCLickListener();
 onSearch();
@@ -15,7 +16,7 @@ onSearch();
 function pageChangeListener() {
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if (changeInfo.hasOwnProperty("title") && changeInfo.title.includes("https")) {
-      chrome.tabs.sendMessage(tabId, changeInfo)
+      chrome.tabs.sendMessage(tabId, changeInfo);
     }
   })
 }
@@ -34,7 +35,7 @@ function onSearch () {
     else if (request.message == "auth") {                                        // message from search button press
       (async function tokenFlow() {                                             // container function since the addListener callback can't be async
 
-        const token_response = await getToken("access");                        // gets access token from browser local storage 
+        var token_response = await getToken("access");                        // gets access token from browser local storage 
         var access_token = await token_response.access
         var myHeaders = new Headers({
           "Authorization": "Bearer " + access_token,
@@ -59,13 +60,13 @@ function onSearch () {
 
             if (refresh_token != null) {                                          // if refresh token found in storage
 
-              console.log("refresh token found")
+              console.log("refresh token found");
               access_token = await refreshAccessSafe(refresh_token);                  // update access token with refresh token
+              console.log("new access token acquired");
               saveTokens(refresh_token, access_token);                             // update storage with new tokens
               myHeaders.set("Authorization", "Bearer " + access_token);         
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
               data = await response.json();
-              console.log(data)
               sendResponse(cleanData(request, data));
 
             }
@@ -73,6 +74,7 @@ function onSearch () {
 
               console.log("no refresh token found")
               access_token = await oauth2(email, true);                           // gets and saves new tokens from oauth2 interactive
+              console.log("access token obtained through interactive oauth2")
               myHeaders.set("Authorization", "Bearer " + access_token);         
               response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
               data = await response.json();
@@ -109,7 +111,7 @@ function oauth2(email, interactive) {
     response_type: "code",
     access_type: "offline",
     prompt: "consent",
-    scope: "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me https://www.googleapis.com/auth/classroom.announcements.readonly",
+    scope: "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me https://www.googleapis.com/auth/classroom.announcements.readonly https://www.googleapis.com/auth/classroom.coursework.students",
     login_hint: email
   }
 
