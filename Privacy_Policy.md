@@ -7,6 +7,8 @@ This scope is required to identify which class you are currently viewing, so it 
 Only the first part of this scope (“manage your coursework”) is needed and used by this extension. This allows the extension to access a list of your Classroom assignments and read their titles and descriptions. The terms inputted in the search bar are then matched against these titles and descriptions to find the closest matches. The grades of the user for these assignments are not accessed in any way by the extension. 
 - View your announcements in Google Classroom.
 Similarly to assignments, this scope allows the extension to view a list of your courses’ announcements. The extension uses this data on to search through the announcements and return matching results. 
+- Manage coursework and view grades for classes you teach or administer.
+This scope only applies to users of the extension that are teachers or administers. It allows the extension to access a list of the user's assignmnets so that the extension can find search results. 
 
 Part II: Other Permissions
 
