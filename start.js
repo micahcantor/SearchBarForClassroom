@@ -71,7 +71,9 @@ async function displayAssignments(matches) {
     var parser = new DOMParser();
 
     const match = getURLMatch();
-    if (match.userID == null) match.userID = 0; 
+    var userID = 0;
+    if (match.userID != null)
+        userID = match.userID
 
     var assignmentsObject = {htmls: [], indeces: []};
     var idx = 0;
@@ -91,7 +93,7 @@ async function displayAssignments(matches) {
             doc.getElementById("as_A_35").setAttribute("data-focus-id", "LPEWg|" + match.item.id);
 
             doc.getElementById("as_DIV_1").addEventListener("click", () => {
-                const url = match.item.link.substring(0, 28) + "/u/" + match.userID + match.item.link.substring(28);
+                const url = match.item.link.substring(0, 28) + "/u/" + userID + match.item.link.substring(28);
                 chrome.runtime.sendMessage({url: url, message: "assignment click"})
             })
             
@@ -150,7 +152,9 @@ async function displayAnnounceMaterials(materials, container) {
     var doc = parser.parseFromString(text, 'text/html');
 
     const match = getURLMatch();
-    if (match.userID == null) match.userID = 0;
+    var userID = 0;
+    if (match.userID != null)
+        userID = match.userID
 
     var materialsHTML = []
     for (const material of materials) {
@@ -159,19 +163,19 @@ async function displayAnnounceMaterials(materials, container) {
             doc.getElementById("link_A_2").setAttribute("data-focus-id", "eTkQDe-" + material.link.url);
             doc.getElementById("link_A_9").setAttribute("data-focus-id", "hSRGPd-" + material.link.url)
             doc.getElementById("link_DIV_7").innerText = material.link.title;
-            doc.getElementById("link_IMG_11").setAttribute("src","https://classroom.google.com/u/" + match.userID + "/webthumbnail?url=" + material.link.url);
+            doc.getElementById("link_IMG_11").setAttribute("src","https://classroom.google.com/u/" + userID + "/webthumbnail?url=" + material.link.url);
             doc.getElementById("link_DIV_13").innerText = material.link.title;
             doc.getElementById("link_DIV_15").innerText = material.link.url;
             materialsHTML.push(doc.getElementById("link_DIV_1"))
         }
         if (material.driveFile) {
-            const driveURL = material.driveFile.alternateLink + "&amp;authuser=" + match.userID;
+            const driveURL = material.driveFile.alternateLink + "&amp;authuser=" + userID;
             doc.getElementById("file_A_2").setAttribute("href", driveURL);
             doc.getElementById("file_A_2").setAttribute("aria-label", material.driveFile.title);
             doc.getElementById("file_DIV_7").textContent = material.driveFile.title;
             doc.getElementById("file_A_9").setAttribute("title", material.driveFile.title);
             doc.getElementById("file_A_9").setAttribute("href", driveURL);
-            doc.getElementById("file_IMG_11").setAttribute("src", material.driveFile.thumbnailURL + "&amp;authuser=" + match.userID + "&amp;sz=w105-h70-c")
+            doc.getElementById("file_IMG_11").setAttribute("src", material.driveFile.thumbnailURL + "&amp;authuser=" + userID + "&amp;sz=w105-h70-c")
             doc.getElementById("file_DIV_20").textContent = material.driveFile.title;
             materialsHTML.push(doc.getElementById("file_DIV_1"))
         }
