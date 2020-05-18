@@ -282,6 +282,7 @@ function getTeacherName() {
     }
 }
 
+
 function editDOMIDs(top_div) {
     if (top_div.children.length == 0 & top_div.nextSibling == null) {
         return
@@ -367,9 +368,5 @@ async function addFormHTML () {
     return parser.parseFromString(text, "text/html").getElementById("searchForm_1");
 }
 
-
-/*
-    <a target="_blank" href="https://icons8.com/icons/set/search--v1">Search icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
-*/
 
 ///NOTE: put ttps://icons8.com in the about section of the extension
