@@ -93,7 +93,7 @@ function onSearch () {
 function oauth2() {
   var auth_url = "https://accounts.google.com/o/oauth2/auth?";
   const client_id = "809411372636-42mpeh1d7ntk8vor0kuhtsg66ug1olcd.apps.googleusercontent.com";
-  const redirect_uri = "https://dmlfplbdckbemkkhkojekbagnpldghnc.chromiumapp.org/oauth2";";
+  const redirect_uri = "https://dmlfplbdckbemkkhkojekbagnpldghnc.chromiumapp.org/oauth2";
 
   const auth_params = {
     client_id: client_id,
@@ -176,7 +176,7 @@ function getAssignments(data) {
         if (courseWork[i].hasOwnProperty("description")) {     
             descriptions.push(courseWork[i].description);
         }
-        else {descriptions.push("")}                         // push empty string to preserve indeces
+        elWelcomese {descriptions.push("")}                         // push empty string to preserve indeces
 
         var created = new Date(courseWork[i].creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'});
         var updated = null;

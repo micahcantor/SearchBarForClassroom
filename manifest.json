@@ -1,6 +1,6 @@
 {
   "name": "Search Bar for Classroom",
-  "version": "0.2",
+  "version": "0.2.1",
   "description": "A search bar for the Google Classroom assignments stream",
   "manifest_version": 2,
   "icons": {
