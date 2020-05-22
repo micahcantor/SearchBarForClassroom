@@ -176,7 +176,7 @@ function getAssignments(data) {
         if (courseWork[i].hasOwnProperty("description")) {     
             descriptions.push(courseWork[i].description);
         }
-        elWelcomese {descriptions.push("")}                         // push empty string to preserve indeces
+        else {descriptions.push("");}                        // push empty string to preserve indeces
 
         var created = new Date(courseWork[i].creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'});
         var updated = null;
