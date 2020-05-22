@@ -16,7 +16,8 @@
     "storage",
     "identity",
     "https://classroom.googleapis.com/*",
-    "https://classroom-searchbar.herokuapp.com/*"
+    "https://classroom-searchbar.herokuapp.com/*",
+    "http://localhost:3000/*"
   ],
   "background": {
     "page": "background.html"

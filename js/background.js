@@ -93,7 +93,7 @@ function onSearch () {
 function oauth2() {
   var auth_url = "https://accounts.google.com/o/oauth2/auth?";
   const client_id = "809411372636-42mpeh1d7ntk8vor0kuhtsg66ug1olcd.apps.googleusercontent.com";
-  const redirect_uri = "https://dmlfplbdckbemkkhkojekbagnpldghnc.chromiumapp.org/oauth2";
+  const redirect_uri = "https://fnijackcjlbikdakbdfibgcajhbjakpa.chromiumapp.org/oauth2";
 
   const auth_params = {
     client_id: client_id,
@@ -118,9 +118,10 @@ function oauth2() {
 }
 
 async function exchangeCodeSafe(code) {
-  const url = "https://classroom-searchbar.herokuapp.com/exchange"
+  const url = "https://classroom-searchbar.herokuapp.com/exchange";
+  const testing = "http://localhost:3000/exchange"
 
-  const response = await fetch(url, {
+  const response = await fetch(testing, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -133,9 +134,10 @@ async function exchangeCodeSafe(code) {
 }
 
 async function refreshAccessSafe(refresh_token) {
-  const url = "https://classroom-searchbar.herokuapp.com/refresh"
-
-  const response = await fetch(url, {
+  const url = "https://classroom-searchbar.herokuapp.com/refresh";
+  const testing = "http://localhost:3000/exchange"
+  
+  const response = await fetch(testing, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

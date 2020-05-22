@@ -1,7 +1,6 @@
 #container {
-    border-radius: .25rem;
-    border: 1px solid rgb(152, 152, 152);
     min-width: 20rem;
+    color: #F4F7F5;
     font-family: 'Google Sans'Roboto,Arial,sans-serif;
 }
 
@@ -9,7 +8,7 @@
     font-family: 'Google Sans'Roboto,Arial,sans-serif;
 }
 hr.solid {
-    border-top: 1px solid rgb(152, 152, 152);
+    border-top: 1px solid #F4F7F5;
 }
 
 div.options {
@@ -24,7 +23,7 @@ div.credits {
     line-height: 2;
     font-size: var(--mdc-typography-button-font-size, .875rem);
     text-transform: initial;
-    color: black;
+    color: #F4F7F5;
     margin-left: .5rem;
     margin-bottom: .5rem;
 }
@@ -36,10 +35,10 @@ span.title {
     margin-top: .75rem;
     margin-bottom: .75rem;
     text-transform: initial;
-    color: black;
+    color: #F4F7F5;
 }
 span.button_text {
     text-align: left;
     text-transform: lowercase;
-    color: black;
+    color: #F4F7F5;
 }
