@@ -12,28 +12,29 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     }
 })
 
-function listenForSearch(form) {
-    var input = form.children[0];
-    var button = form.children[1];
+function listenForSearch(searchForm) {
+    var inputField = searchForm.children[0];
+    var button = searchForm.children[1];
     var valueOnSearch = null;
 
     button.addEventListener("click", async function(event) {            // when search button is pressed
         event.preventDefault();
-        if (button.children[0].textContent == "Search" && input.value == "")     // does not search when input field is empty
+        const currentClassDiv = getCurrentClassDiv();
+        currentClassDiv.querySelectorAll("div[id=searchResultContainer").forEach((container) => container.remove());
+        
+        if (button.children[0].textContent == "Search" && inputField.value == "") {    // does not search when input field is empty
             button.children[0].textContent = "Reset";
-        else if (button.children[0].textContent == "Reset" && valueOnSearch == input.value) {
+        }
+        else if (button.children[0].textContent == "Reset" && valueOnSearch == inputField.value) {
             button.children[0].textContent = "Search";
-            input.value = "";
-            const currentClassDiv = getCurrentClassDiv();
-            currentClassDiv.querySelectorAll("div[id=searchResultContainer").forEach((container) => container.remove())
+            inputField.value = "";
         } else {
             button.children[0].textContent = "Loading";
-            valueOnSearch = input.value;
+            valueOnSearch = inputField.value;
             const courseID = await getCourseID();        
             const assignments = await getCourseAssignments(courseID);
             const combinedWork = await getCourseAnnouncements(assignments, courseID);
-            const input = form.children[0].value
-            const searchResults = await searchCourseWork(combinedWork, input);
+            const searchResults = await searchCourseWork(combinedWork, valueOnSearch);
             await displayResults(searchResults);
             button.children[0].textContent = "Reset";
         }
