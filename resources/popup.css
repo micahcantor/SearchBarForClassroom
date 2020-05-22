@@ -15,7 +15,6 @@ hr.solid {
 div.options {
     text-align: left;
     font-size: var(--mdc-typography-button-font-size, 0.875rem);
-    font-weight: 600;
     margin-bottom: .5rem;
     margin-left: .5rem;
 }
