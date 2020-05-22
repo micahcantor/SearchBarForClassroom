@@ -13,18 +13,22 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 })
 
 function listenForSearch(form) {
+    var input = form.children[0];
     var button = form.children[1];
+    var valueOnSearch = null;
+
     button.addEventListener("click", async function(event) {            // when search button is pressed
         event.preventDefault();
-        if (button.children[0].textContent == "Search" && form.children[0].value == "")
-            button.children[0].textContent = "Reset"
-        else if (button.children[0].textContent == "Reset") {
+        if (button.children[0].textContent == "Search" && input.value == "")     // does not search when input field is empty
+            button.children[0].textContent = "Reset";
+        else if (button.children[0].textContent == "Reset" && valueOnSearch == input.value) {
             button.children[0].textContent = "Search";
-            form.children[0].value = "";
+            input.value = "";
             const currentClassDiv = getCurrentClassDiv();
             currentClassDiv.querySelectorAll("div[id=searchResultContainer").forEach((container) => container.remove())
         } else {
             button.children[0].textContent = "Loading";
+            valueOnSearch = input.value;
             const courseID = await getCourseID();        
             const assignments = await getCourseAssignments(courseID);
             const combinedWork = await getCourseAnnouncements(assignments, courseID);
@@ -281,7 +285,6 @@ function getTeacherName() {
         return teacherName.join(" ") + " "
     }
 }
-
 
 function editDOMIDs(top_div) {
     if (top_div.children.length == 0 & top_div.nextSibling == null) {
