@@ -1,6 +1,6 @@
 {
   "name": "Search Bar for Classroom",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "A search bar for the Google Classroom assignments stream",
   "manifest_version": 2,
   "icons": {
@@ -17,7 +17,7 @@
     "identity",
     "https://classroom.googleapis.com/*",
     "https://classroom-searchbar.herokuapp.com/*",
-    "http://localhost:3000/*"
+    "https://search-bar-for-classroom.uk.r.appspot.com/*"
   ],
   "background": {
     "page": "background.html"

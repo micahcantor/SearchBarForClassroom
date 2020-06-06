@@ -118,10 +118,10 @@ function oauth2() {
 }
 
 async function exchangeCodeSafe(code) {
-  const url = "https://classroom-searchbar.herokuapp.com/exchange";
+  const url = "https://search-bar-for-classroom.uk.r.appspot.com/exchange";
   const testing = "http://localhost:3000/exchange"
 
-  const response = await fetch(testing, {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -134,10 +134,10 @@ async function exchangeCodeSafe(code) {
 }
 
 async function refreshAccessSafe(refresh_token) {
-  const url = "https://classroom-searchbar.herokuapp.com/refresh";
+  const url = "https://search-bar-for-classroom.uk.r.appspot.com/refresh";
   const testing = "http://localhost:3000/exchange"
   
-  const response = await fetch(testing, {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
