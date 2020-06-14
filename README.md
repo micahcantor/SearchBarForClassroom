@@ -7,7 +7,5 @@ A simple chrome extension to add a search bar to Google Classroom. Uses the Clas
 Search Bar for Classroom is [available on the Chrome Web Store](https://chrome.google.com/webstore/detail/search-bar-for-classroom/dmlfplbdckbemkkhkojekbagnpldghnc).
 ![webstore](https://github.com/micahcantor/ClassroomSearchbar/blob/master/ChromeWebStoreBadge.png "Webstore")
 
-### Local Development
-
 
 
