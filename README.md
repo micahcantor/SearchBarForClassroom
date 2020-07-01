@@ -3,6 +3,8 @@ A simple Chrome extension to add a search bar to Google Classroom. Uses the Clas
 
 ![example](https://raw.githubusercontent.com/micahcantor/ClassroomSearchbar/master/extension-example.png "Example Image")
 
+It's **more powerful than Ctrl + F** since it searches the entire stream, and not just the 10-15 assignments that load by default. It also supports "fuzzy searching" so you can find assignments even if you don't remember the exact wording used in it.
+
 ## How does it work?
 Once authorized by the user, the extension connects to the Google Classroom API and pulls all the assignments and announcements for the class being searched. It then matches the query terms against the list of coursework using the fuzzy search tool fuse.js, and orders them by relevancy. 
 
