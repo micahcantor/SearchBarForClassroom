@@ -13,6 +13,16 @@ pageChangeListener();
 assignmentClickListener();
 onSearch();
 
+const PRODUCTION = true;
+
+const REDIRECT = PRODUCTION 
+  ? "https://dmlfplbdckbemkkhkojekbagnpldghnc.chromiumapp.org/oauth2"
+  : "https://apcbfgfefnmfnpopdalikdechohapgcm.chromiumapp.org/oauth2"
+
+const API_URL = PRODUCTION 
+  ? "https://search-bar-for-classroom.uk.r.appspot.com/exchange"
+  : "http://localhost:3000/exchange";
+
 function pageChangeListener() {
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if (changeInfo.hasOwnProperty("title") && changeInfo.title.includes("https")) {
@@ -67,21 +77,41 @@ function onSearch () {
               console.log("new access token acquired");
               saveTokens(refresh_token, access_token);                             // update storage with new tokens
               myHeaders.set("Authorization", "Bearer " + access_token);         
-              response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
-              data = await response.json();
-              sendResponse(cleanData(request, data));
 
+              try {
+                response = await fetch(request.url, { headers: myHeaders });                  
+                data = await response.json();
+              }
+              catch(error) {
+                sendResponse({ message: "error", type: errorTypes.withRefresh, value: error});
+              }
+
+              console.log("successfully fetched API data");
+              sendResponse(cleanData(request, data));
             }
             else {                                                                // no refresh token found in storage
 
               console.log("no refresh token found")
-              access_token = await oauth2();                           // gets and saves new tokens from oauth2 interactive
-              console.log("access token obtained through interactive oauth2")
-              myHeaders.set("Authorization", "Bearer " + access_token);         
-              response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
-              data = await response.json();
-              sendResponse(cleanData(request, data));
+                
+              access_token = await oauth2()  // gets and saves new tokens from oauth2 interactive
+                .catch(error => {
+                  sendResponse({ message: "error", type: error, value: "" });
+                });
 
+              console.log("access token obtained through interactive oauth2")
+              myHeaders.set("Authorization", "Bearer " + access_token);     
+              
+              try {
+                response = await fetch(request.url, {headers: myHeaders});          // resend GET request with updated access token
+                data = await response.json();
+              }
+              catch(error) {
+                console.error(error);
+                sendResponse({ message: "error", type: errorTypes.withAccess, value: error });
+              }
+
+              console.log("successfully fetched API data");
+              sendResponse(cleanData(request, data));
             }
           })
       })()
@@ -93,11 +123,10 @@ function onSearch () {
 function oauth2() {
   var auth_url = "https://accounts.google.com/o/oauth2/auth?";
   const client_id = "809411372636-42mpeh1d7ntk8vor0kuhtsg66ug1olcd.apps.googleusercontent.com";
-  const redirect_uri = "https://dmlfplbdckbemkkhkojekbagnpldghnc.chromiumapp.org/oauth2";
 
   const auth_params = {
     client_id: client_id,
-    redirect_uri: redirect_uri,
+    redirect_uri: REDIRECT,
     response_type: "code",
     access_type: "offline",
     prompt: "consent",
@@ -110,17 +139,24 @@ function oauth2() {
 
   return new Promise (function(resolve, reject) {
     chrome.identity.launchWebAuthFlow({url: auth_url, interactive: true}, async function(response) {
-      const code = response.slice(response.indexOf("=") + 1, response.indexOf("&"));
-      token = await exchangeCodeSafe(code);
-      resolve(token);
+      if (!response) {
+        reject(errorTypes.interactive);
+      }
+      else {
+        const code = response.slice(response.indexOf("=") + 1, response.indexOf("&"));
+
+        token = await exchangeCodeSafe(code)
+          .catch(error => errorTypes.exchangeCode);
+
+        resolve(token);
+      }
     })
   })
 }
 
 async function exchangeCodeSafe(code) {
-  const url = "https://search-bar-for-classroom.uk.r.appspot.com/exchange";
 
-  const response = await fetch(url, {
+  const response = await fetch(API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -134,7 +170,6 @@ async function exchangeCodeSafe(code) {
 
 async function refreshAccessSafe(refresh_token) {
   const url = "https://search-bar-for-classroom.uk.r.appspot.com/refresh";
-  const testing = "http://localhost:3000/exchange"
   
   const response = await fetch(url, {
     method: "POST",
@@ -148,14 +183,19 @@ async function refreshAccessSafe(refresh_token) {
 }
 
 function cleanData (request, data) {
-  if (request.type == "courseID") {
-    return getCourseID(data, request);
+  try {
+    if (request.type == "courseID") {
+      return getCourseID(data, request);
+    }
+    else if (request.type == "assignments") {
+      return getAssignments(data);
+    }
+    else if (request.type == "announcements") {
+      return getAnnouncements(data, request);
+    }
   }
-  else if (request.type == "assignments") {
-    return getAssignments(data);
-  }
-  else if (request.type == "announcements") {
-    return getAnnouncements(data, request);
+  catch(error) {
+    return { message: "error", type: errorTypes.cleaning, value: error };
   }
 }
 
@@ -163,7 +203,7 @@ function getCourseID(data, request) {
   var courseList = data.courses
   for (const course of courseList) {
     if (course.name == request.courseName) {
-        return course.id                                          // find course with the name on the current page
+      return course.id   // find course with the name on the current page
     }
   }
 }
@@ -177,7 +217,9 @@ function getAssignments(data) {
         if (courseWork[i].hasOwnProperty("description")) {     
             descriptions.push(courseWork[i].description);
         }
-        else {descriptions.push("");}                        // push empty string to preserve indeces
+        else {
+          descriptions.push(""); // push empty string to preserve indeces
+        }                        
 
         var created = new Date(courseWork[i].creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'});
         var updated = null;
@@ -207,13 +249,13 @@ function getAnnouncements(data, request) {
         updated = new Date(announce.updateTime).toLocaleDateString('default', {month: 'short', day: 'numeric'})
       }
       courseWorkValues.push({
-            description : announce.text,
-            materials: announce.materials,
-            type: "announcement",
-            created: new Date(announce.creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'}),
-            updated: updated,
-            id : announce.id
-        })
+        description : announce.text,
+        materials: announce.materials,
+        type: "announcement",
+        created: new Date(announce.creationTime).toLocaleDateString('default', {month: 'short', day: 'numeric'}),
+        updated: updated,
+        id : announce.id
+      })
     }
   }
   return courseWorkValues;
@@ -235,4 +277,13 @@ function getToken(type) {
       resolve(result)
     })
   })
+}
+
+const errorTypes = {
+  withRefresh: "error fetching api with refresh token",
+  withAccess: "error fetching api with access token",
+  exchangeCode: "error exchanging access code for tokens",
+  interactive: "error during interactive oauth2",
+  oauth2: "error during oauth2 verification",
+  cleaning: "error while cleaning up data",
 }

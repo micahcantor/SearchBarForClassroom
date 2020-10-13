@@ -31,27 +31,38 @@ function listenForSearch(searchForm) {
         } else {
             button.children[0].textContent = "Loading";
             valueOnSearch = inputField.value;
-            const courseID = await getCourseID();        
-            const assignments = await getCourseAssignments(courseID);
-            const combinedWork = await getCourseAnnouncements(assignments, courseID);
-            const searchResults = await searchCourseWork(combinedWork, valueOnSearch);
-            await displayResults(searchResults);
+
+            const courseID = await getCourseID() 
+                .catch(error => console.error(error));    
+            const assignments = await getCourseAssignments(courseID)
+                .catch(error => console.error(error));
+            const combinedWork = await getCourseAnnouncements(assignments, courseID)
+                .catch(error => console.error(error));
+
+            const searchResults = searchCourseWork(combinedWork, valueOnSearch);
+            await displayResults(searchResults)
+                .catch(error => console.error(error))
+                
             button.children[0].textContent = "Reset";
         }
     });
 }
 
 async function displayResults(matches) {
-
-    var resultContainer = document.createElement("div");
-    resultContainer.setAttribute("id", "searchResultContainer")
-    const assignments = await displayAssignments(matches);
-    const announcements = await displayAnnouncements(matches);
-    insertIntoContainer(assignments, announcements, resultContainer)
-
-    const currentClassDiv = getCurrentClassDiv();
-    const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
-    target.insertBefore(resultContainer, target.children[2]);
+    try {
+        var resultContainer = document.createElement("div");
+        resultContainer.setAttribute("id", "searchResultContainer")
+        const assignments = await displayAssignments(matches);
+        const announcements = await displayAnnouncements(matches);
+        insertIntoContainer(assignments, announcements, resultContainer)
+    
+        const currentClassDiv = getCurrentClassDiv();
+        const target = currentClassDiv.querySelector("div[jscontroller=ZMiF]");
+        target.insertBefore(resultContainer, target.children[2]);
+    }
+    catch(error) {
+        Promise.reject(error);
+    }
 }
 
 function insertIntoContainer(assignments, announcements, container) {
@@ -230,6 +241,7 @@ function getCourseAnnouncements(courseWorkValues, COURSE_ID) {
         }
         getClassroomData(reqOptions)
             .then(response => resolve(response))
+            .catch(error => reject(error))
     })
 }
 
@@ -245,6 +257,7 @@ function getCourseAssignments(COURSE_ID) {
         }
         getClassroomData(reqOptions)
             .then(response => resolve(response))
+            .catch(error => reject(error))
     })
 }
 
@@ -262,13 +275,18 @@ function getCourseID() {
             courseName : courseName
         }
         getClassroomData(reqOptions)
-            .then(response => resolve(response))  
+            .then(response => resolve(response))
+            .catch(error => reject(error))  
     })
 }
 
 function getClassroomData(data) {
     return new Promise(function(resolve, reject) {
         chrome.runtime.sendMessage(data, function(response) {
+            if (response.message && response.message === "error") {
+                console.error(response.value)
+                reject(response.type)
+            }
             resolve(response)
         }) 
     })
