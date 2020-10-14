@@ -37,15 +37,14 @@ function listenForSearch(searchForm) {
       button.children[0].textContent = "Loading";
       valueOnSearch = inputField.value;
 
-      let errorFlag;
       const courseID = await getCourseID().catch((error) => {
         console.error(error);
-        errorFlag = true;
+        button.children[0].textContent = "Error";
       });
       const assignments = await getCourseAssignments(courseID).catch(
         (error) => {
           console.error(error);
-          errorFlag = true;
+          button.children[0].textContent = "Error";
         }
       );
       const combinedWork = await getCourseAnnouncements(
@@ -53,16 +52,17 @@ function listenForSearch(searchForm) {
         courseID
       ).catch((error) => {
         console.error(error);
-        errorFlag = true;
+        button.children[0].textContent = "Error";
       });
 
       const searchResults = searchCourseWork(combinedWork, valueOnSearch);
       await displayResults(searchResults).catch((error) => {
         console.error(error);
-        errorFlag = true;
+        button.children[0].textContent = "Error";
       });
 
-      button.children[0].textContent = errorFlag ? "Error" : "Reset";
+      if (button.children[0].textContent !== "Error")
+        button.children[0].textContent = "Reset";
     }
   });
 }
