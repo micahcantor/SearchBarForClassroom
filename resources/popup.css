@@ -8,7 +8,7 @@
     font-family: 'Google Sans'Roboto,Arial,sans-serif;
 }
 hr.solid {
-    border-top: 1px solid #F4F7F5;
+    border-top: 1px solid black;
 }
 
 div.options {
@@ -23,7 +23,7 @@ div.credits {
     line-height: 2;
     font-size: var(--mdc-typography-button-font-size, .875rem);
     text-transform: initial;
-    color: #F4F7F5;
+    color: black;
     margin-left: .5rem;
     margin-bottom: .5rem;
 }
@@ -35,10 +35,10 @@ span.title {
     margin-top: .75rem;
     margin-bottom: .75rem;
     text-transform: initial;
-    color: #F4F7F5;
+    color: black;
 }
 span.button_text {
     text-align: left;
     text-transform: lowercase;
-    color: #F4F7F5;
+    color: black;
 }

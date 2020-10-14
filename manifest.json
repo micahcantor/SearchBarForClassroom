@@ -1,8 +1,7 @@
 {
-"update_url": "https://clients2.google.com/service/update2/crx",
-
+  "update_url": "https://clients2.google.com/service/update2/crx",
   "name": "Search Bar for Classroom",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "description": "A search bar for the Google Classroom assignments stream",
   "manifest_version": 2,
   "icons": {
@@ -23,15 +22,16 @@
   "background": {
     "page": "background.html"
   },
-  "content_scripts": [{
-        "run_at": "document_end",
-        "matches": ["https://classroom.google.com/*"],
-        "js": ["lib/fuse.js", "lib/url-pattern.js", "js/start.js"]
-      }
+  "content_scripts": [
+    {
+      "run_at": "document_end",
+      "matches": ["https://classroom.google.com/*"],
+      "js": ["lib/fuse.js", "lib/url-pattern.js", "js/start.js"]
+    }
   ],
   "oauth2": {
     "client_id": "809411372636-isaj4trbcg56tnmdevf3qhv1vk57kttb.apps.googleusercontent.com",
-    "scopes":[
+    "scopes": [
       "openid",
       "email",
       "profile",
@@ -41,7 +41,5 @@
       "https://www.googleapis.com/auth/classroom.coursework.students"
     ]
   },
-  "web_accessible_resources": [
-    "resources/*"
-  ]
+  "web_accessible_resources": ["resources/*"]
 }
